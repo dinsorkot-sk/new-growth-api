@@ -51,7 +51,7 @@ PORT=3000
 
 ### 4️⃣ Initialize Sequelize
 ```sh
-npx sequelize-cli init
+npx sequelize-cli init --migrations-path src/migrations --models-path src/models --seeders-path src/seeders --config src/config/config.json
 ```
 
 ### 5️⃣ Create the Database
@@ -59,12 +59,17 @@ npx sequelize-cli init
 npx sequelize-cli db:create --config src/config/database.js
 ```
 
-### 6️⃣ Run Migrations
+### 6️⃣ Create migrations
+```sh
+npx sequelize-cli migration:generate --name <migration_name> --migrations-path src/migration
+```
+
+### 7️⃣ Run Migrations
 ```sh
 npx sequelize-cli db:migrate --config src/config/database.js
 ```
 
-### 7️⃣ Start the Server
+### 8️⃣ Start the Server
 ```sh
 npm run dev
 ```
