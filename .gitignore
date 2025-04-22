@@ -1,3 +1,4 @@
 .env
 .command.ps1
 package-lock.json
+/upload/*
