@@ -96,8 +96,6 @@ exports.createNews = async (req, res) => {
 
     const result = {
       ...fullNews.toJSON(),
-      image: fullNews.image ? { id: fullNews.image.id, path: fullNews.image.image_path } : null,
-      tags: fullNews.tagAssignments.map(ta => ta.tag)
     };
 
     await t.commit();
@@ -128,8 +126,35 @@ exports.updateNews = async (req, res) => {
     await news.save({ transaction: t });
     if (tag) await handleTags(tag, news.id, t);
 
+    const fullNews = await News.findByPk(news.id, {
+      attributes: ['id', 'title', 'content', 'published_date'],
+      include: [
+        {
+          model: Image,
+          as: 'image',
+          attributes: ['id', 'image_path']
+        },
+        {
+          model: TagAssignment,
+          as: 'tagAssignments',
+          required: false,
+          where: { taggable_type: 'news' },
+          include: [{
+            model: Tag,
+            as: 'tag',
+            attributes: ['id', 'name'],
+          }]
+        }
+      ],
+      transaction: t
+    });
+
+    const result = {
+      ...fullNews.toJSON(),
+    };
+
     await t.commit();
-    res.json({ message: 'News updated', data: news });
+    res.json({ message: 'News updated', data: result });
   } catch (err) {
     await t.rollback();
     res.status(500).json({ message: 'Error updating news', error: err.message });
@@ -195,12 +220,7 @@ exports.getAllNews = async (req, res) => {
     });
 
     const result = newsList.map(n => ({
-      id: n.id,
-      title: n.title,
-      content: n.content,
-      published_date: n.published_date,
-      image: n.image ? { id: n.image.id, path: n.image.image_path } : null,
-      tags: n.tagAssignments.map(ta => ({ id: ta.tag?.id, name: ta.tag?.name }))
+      ...n.toJSON(),
     }));
 
     res.status(200).json(result);
@@ -213,11 +233,31 @@ exports.getNewsById = async (req, res) => {
   try {
     const news = await News.findOne({
       where: { id: req.params.id, status: 'show' },
-      include: [{ model: Image, as: 'image' }]
+      include: [
+        {
+          model: Image,
+          as: 'image',
+          attributes: ['id', 'image_path']
+        },
+        {
+          model: TagAssignment,
+          as: 'tagAssignments',
+          required: false,
+          where: { taggable_type: 'news' },
+          include: [{
+            model: Tag,
+            as: 'tag',
+            attributes: ['id', 'name'],
+          }]
+        }
+      ],
     });
 
     if (!news) return res.status(404).json({ message: 'News not found or not visible' });
-    res.json(news);
+    const result = {
+      ...news.toJSON(),
+    };
+    res.json(result);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching news', error: err.message });
   }
