@@ -264,7 +264,7 @@ exports.getAllNews = async (req, res) => {
 
     const whereConditions = {
       [Op.or]: [
-        { status: 'show', deleted_at: null }, // เพิ่มเงื่อนไขนี้เข้าไปใน OR
+        { status: 'show', deleted_at: null },
         { title: { [Op.like]: `%${search}%` } },
         { content: { [Op.like]: `%${search}%` } }
       ]
