@@ -45,12 +45,13 @@ app.get('/', (req, res) => {
 // API Routes
 app.use('/api/courses', courseRoute);
 
+// Admin Routes - with auth middleware
+app.use('/api/admin/', adminLogin);
 
 app.get('/api/admin/dashboard', authMiddleware, (req, res) => {
     res.json({ message: `ยินดีต้อนรับคุณ ${req.user.username}` });
 });
-// Admin Routes - with auth middleware
-app.use('/api/admin/', adminLogin);
+
 app.use('/api/admin/event', authMiddleware, adminEvent);
 app.use('/api/admin/news', authMiddleware, adminNews);
 
