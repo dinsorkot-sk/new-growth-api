@@ -3,6 +3,8 @@ const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const db = require("./config/database");
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swagger/swagger'); 
 
 // Import middleware
 const {
@@ -36,6 +38,9 @@ app.use(requestTimeTracker);
 app.use(responseTimeLogger);
 app.use(sanitizeBody);
 app.use(rateLimit);
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/openapi.json', (req, res) => res.json(swaggerSpec));
 
 // Routes
 app.get('/', (req, res) => {
