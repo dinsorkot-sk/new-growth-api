@@ -1,5 +1,5 @@
 const db = require('../models');
-const { sequelize, Event, Image, Tag, TagAssignment } = require('../models');
+const { sequelize, Event, Image, Tag, TagAssignment } = require('../../models');
 const path = require('path');
 const fs = require('fs');
 

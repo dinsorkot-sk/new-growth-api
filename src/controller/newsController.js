@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const {sequelize ,News , Image,Tag,TagAssignment } = require('../models');
+const { sequelize, News, Image, Tag, TagAssignment } = require('../models');
 const e = require('express');
 const path = require('path')
 const fs = require('fs');
@@ -293,7 +293,7 @@ exports.getAllNews = async (req, res) => {
           model: Image,
           as: 'image',
           attributes: ['id', 'image_path'],
-          where: search ? { image_path: { [Op.like]: `%${search}%` } } : undefined ,
+          where: search ? { image_path: { [Op.like]: `%${search}%` } } : undefined,
           required: false
         }
       ],
@@ -301,17 +301,17 @@ exports.getAllNews = async (req, res) => {
       offset: parseInt(offset),
       limit: parseInt(limit),
       order: [['published_date', 'DESC']],
-      logging: console.log 
+      logging: console.log
     });
 
-    
+
     const result = newsList
       .filter(news => {
         if (!search) return true;
         const inTags = news.tagAssignments.some(ta =>
           ta.tag?.name?.includes(search)
         );
-        return inTags || true; 
+        return inTags || true;
       })
       .map(news => ({
         id: news.id,
@@ -320,9 +320,9 @@ exports.getAllNews = async (req, res) => {
         published_date: news.published_date,
         image: news.image
           ? {
-              id: news.image.id,
-              path: news.image.image_path
-            }
+            id: news.image.id,
+            path: news.image.image_path
+          }
           : null,
         tags: news.tagAssignments.map(ta => ({
           id: ta.tag ? ta.tag.id : null,
@@ -340,36 +340,36 @@ exports.getAllNews = async (req, res) => {
 
 
 
-  //get by id
-  exports.getNewsById = async (req, res) => {
-    try {
-      const { id } = req.params;
-  
-      const news = await News.findOne({
-        where: {
-          id: id,
-          status: 'show'
-        },
-        include: [
-          {
-            model: Image,
-            as: 'image'
-          }
-        ]
-      });
-  
-      if (!news) {
-        return res.status(404).json({ message: 'News not found or not visible' });
-      }
-  
-      res.json(news);
-    } catch (error) {
-      console.error('Error fetching news by id:', error);
-      res.status(500).json({ message: 'Internal server error' });
+//get by id
+exports.getNewsById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const news = await News.findOne({
+      where: {
+        id: id,
+        status: 'show'
+      },
+      include: [
+        {
+          model: Image,
+          as: 'image'
+        }
+      ]
+    });
+
+    if (!news) {
+      return res.status(404).json({ message: 'News not found or not visible' });
     }
-  };
+
+    res.json(news);
+  } catch (error) {
+    console.error('Error fetching news by id:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 
-  //delete
-  
+//delete
+
 
