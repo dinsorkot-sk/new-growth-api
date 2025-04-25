@@ -16,8 +16,8 @@ const {
 } = require('./middleware');
 
 // Import routes
-const { newsRoute, courseRoute } = require('./routes');
-const { event: adminEvent , admin: adminLogin } = require('./routes/admin');
+const { courseRoute } = require('./routes');
+const { event: adminEvent, admin: adminLogin , news: adminNews,} = require('./routes/admin');
 
 // Initialize express app
 const app = express();
@@ -43,12 +43,16 @@ app.get('/', (req, res) => {
 });
 
 // API Routes
-app.use('/api/news', newsRoute);
 app.use('/api/courses', courseRoute);
 
+
+app.get('/api/admin/dashboard', authMiddleware, (req, res) => {
+    res.json({ message: `ยินดีต้อนรับคุณ ${req.user.username}` });
+});
 // Admin Routes - with auth middleware
 app.use('/api/admin/', adminLogin);
-app.use('/api/admin/events', authMiddleware, adminEvent);
+app.use('/api/admin/event', authMiddleware, adminEvent);
+app.use('/api/admin/news', authMiddleware, adminNews);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);

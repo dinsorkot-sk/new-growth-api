@@ -33,6 +33,17 @@ module.exports = (sequelize, DataTypes) => {
       Event.belongsTo(models.Image, {
         foreignKey: 'img_id',
         as: 'image',
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+      });
+
+      Event.hasMany(models.TagAssignment, {
+        foreignKey: 'taggable_id',
+        constraints: false,
+        scope: {
+          taggable_type: 'events'
+        },
+        as: 'tagAssignments'
       });
     };
 
