@@ -19,5 +19,4 @@ router.delete('/news/:id',newsController.deleteNews)
 
 //อัปเดตข่าว
 router.put('/news/:id',upload.single('image'),newsController.updateNews)
-
 module.exports = router;

@@ -3,71 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // สร้างตาราง `tags`
-    await queryInterface.createTable('tags', {
-      id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-      },
-      name: {
-        type: Sequelize.TEXT,
-        allowNull: false
-      },
-      created_at: {
-        type: Sequelize.DATE,
-        allowNull: true
-      },
-      updated_at: {
-        type: Sequelize.DATE,
-        allowNull: true
-      },
-      deleted_at: {
-        type: Sequelize.DATE,
-        allowNull: true
-      }
-    });
-
-    // สร้างตาราง `tag_assignments`
-    await queryInterface.createTable('tag_assignments', {
-      id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-      },
-      tag_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'tags',
-          key: 'id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
-      },
-      taggable_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false
-      },
-      taggable_type: {
-        type: Sequelize.TEXT,
-        allowNull: false
-      },
-      created_at: {
-        type: Sequelize.DATE,
-        allowNull: true
-      },
-      updated_at: {
-        type: Sequelize.DATE,
-        allowNull: true
-      },
-      deleted_at: {
-        type: Sequelize.DATE,
-        allowNull: true
-      }
-    });
+  
 
     // สร้างตาราง `categories`
     await queryInterface.createTable('categories', {
@@ -202,7 +138,5 @@ module.exports = {
     await queryInterface.dropTable('reviews');
     await queryInterface.dropTable('category_assignments');
     await queryInterface.dropTable('categories');
-    await queryInterface.dropTable('tag_assignments');
-    await queryInterface.dropTable('tags');
   }
 };
