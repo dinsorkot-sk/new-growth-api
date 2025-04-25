@@ -263,18 +263,12 @@ exports.getAllNews = async (req, res) => {
     const { offset = 0, limit = 10, search = '' } = req.query;
 
     const whereConditions = {
-      status: 'show',
-      deleted_at: null,
-
-    };
-
-    if (search) {
-      whereConditions[Op.or] = [
+      [Op.or]: [
+        { status: 'show', deleted_at: null }, // เพิ่มเงื่อนไขนี้เข้าไปใน OR
         { title: { [Op.like]: `%${search}%` } },
-        { content: { [Op.like]: `%${search}%` } },
-        { name: { [Op.like]: `%${search}%` } }
-      ];
-    }
+        { content: { [Op.like]: `%${search}%` } }
+      ]
+    };
 
     const newsList = await News.findAll({
       attributes: ['id', 'title', 'content', 'published_date'],
@@ -290,7 +284,8 @@ exports.getAllNews = async (req, res) => {
             {
               model: Tag,
               as: 'tag',
-              attributes: ['id', 'name']
+              attributes: ['id', 'name'],
+              where: search ? { name: { [Op.like]: `%${search}%` } } : undefined
             }
           ]
         },
@@ -298,6 +293,7 @@ exports.getAllNews = async (req, res) => {
           model: Image,
           as: 'image',
           attributes: ['id', 'image_path'],
+          where: search ? { image_path: { [Op.like]: `%${search}%` } } : undefined ,
           required: false
         }
       ],
