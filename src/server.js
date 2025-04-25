@@ -47,7 +47,7 @@ app.use('/api/news', newsRoute);
 app.use('/api/courses', courseRoute);
 
 // Admin Routes - with auth middleware
-app.use('/api/admin/', authMiddleware, adminLogin);
+app.use('/api/admin/', adminLogin);
 app.use('/api/admin/events', authMiddleware, adminEvent);
 
 // Error handling middleware (should be last)
