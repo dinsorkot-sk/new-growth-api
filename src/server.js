@@ -29,6 +29,8 @@ const {
     admin: adminLogin, 
     news: adminNews,  
     topic: adminTopic,
+    video: adminVideo
+    
 } = require('./routes/admin');
 
 // Initialize express app
@@ -73,6 +75,9 @@ app.get('/api/admin/dashboard', authMiddleware, (req, res) => {
 app.use('/api/admin/event', authMiddleware, adminEvent);
 app.use('/api/admin/news', authMiddleware, adminNews);
 app.use('/api/admin/topic', authMiddleware, adminTopic);
+app.use('/api/admin/video',authMiddleware ,adminVideo
+
+)
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
