@@ -151,3 +151,44 @@ exports.updateVideoResource = async (req, res) => {
     }
 };
 
+//delete 
+
+exports.deleteVideo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // ค้นหา resource ที่ต้องการลบ
+        const resource = await Resource.findByPk(id);
+        if (!resource) {
+            return res.status(404).json({ error: 'ไม่พบทรัพยากรที่ต้องการลบ' });
+        }
+        
+        // ค้นหา resource_file ที่เกี่ยวข้อง
+        const resourceFile = await ResourceFile.findOne({
+            where: { resource_id: id }
+        });
+        
+        // ลบไฟล์จริงออกจากระบบ (ถ้ามี)
+        if (resourceFile && resourceFile.file_path) {
+            if (fs.existsSync(resourceFile.file_path)) {
+                fs.unlinkSync(resourceFile.file_path);
+            }
+            
+            // ลบข้อมูล resource_file จากฐานข้อมูล
+            await resourceFile.destroy();
+        }
+        
+        // ลบข้อมูล resource จากฐานข้อมูล
+        await resource.destroy();
+        
+        res.status(200).json({
+            message: 'ลบวิดีโอเรียบร้อย'
+        });
+    } catch (error) {
+        console.error('เกิดข้อผิดพลาดในการลบวิดีโอ:', error);
+        res.status(500).json({ 
+            error: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์', 
+            details: error.message 
+        });
+    }
+};
