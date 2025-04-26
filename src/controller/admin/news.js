@@ -209,6 +209,8 @@ exports.deleteNews = async (req, res) => {
 exports.getAllNews = async (req, res) => {
   try {
     const { offset = 0, limit = 10, search = '' } = req.query;
+    const parsedOffset = parseInt(offset);
+    const parsedLimit = parseInt(limit);
     const where = {
       status: 'show',
       deleted_at: null,
@@ -217,6 +219,8 @@ exports.getAllNews = async (req, res) => {
         { content: { [Op.like]: `%${search}%` } }
       ]
     };
+
+    const totalCount = await News.count({ where });
 
     const newsList = await News.findAll({
       attributes: ['id', 'title', 'content', 'published_date'],

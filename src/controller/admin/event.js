@@ -129,6 +129,8 @@ exports.createEvent = async (req, res) => {
 exports.getAllEvents = async (req, res) => {
   try {
     const { offset = 0, limit = 10, search = '' } = req.query;
+    const parsedOffset = parseInt(offset);
+    const parsedLimit = parseInt(limit);
 
     const where = {
       status: 'show',
@@ -138,6 +140,8 @@ exports.getAllEvents = async (req, res) => {
         { description: { [Op.like]: `%${search}%` } }
       ]
     };
+    
+    const totalCount = await Event.count({ where });
 
     const events = await Event.findAll({
       attributes: ['id', 'title', 'description', 'event_date', 'status'],
