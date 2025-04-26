@@ -18,7 +18,6 @@ const {
 } = require('./middleware');
 
 // Import routes
-const { courseRoute } = require('./routes');
 const { 
     event: userEvent, 
     news: userNews,
@@ -29,6 +28,7 @@ const {
     admin: adminLogin, 
     news: adminNews,  
     topic: adminTopic,
+    course: adminCourse,
     video: adminVideo
     
 } = require('./routes/admin');
@@ -60,7 +60,6 @@ app.get('/', (req, res) => {
 });
 
 // API Routes
-app.use('/api/courses', courseRoute);
 app.use('/api/event', userEvent);
 app.use('/api/news', userNews);
 app.use('/api/topic', userTopic);
@@ -75,9 +74,6 @@ app.get('/api/admin/dashboard', authMiddleware, (req, res) => {
 app.use('/api/admin/event', authMiddleware, adminEvent);
 app.use('/api/admin/news', authMiddleware, adminNews);
 app.use('/api/admin/topic', authMiddleware, adminTopic);
-app.use('/api/admin/video',authMiddleware ,adminVideo
-
-)
 
 // Error handling middleware (should be last)
 app.use(errorHandler);

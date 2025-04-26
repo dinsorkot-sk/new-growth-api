@@ -8,10 +8,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      industry_id: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-      },
       reresource_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -29,9 +25,9 @@ module.exports = (sequelize, DataTypes) => {
     });
   
     Course.associate = function(models) {
-      Course.belongsTo(models.Industry, {
-        foreignKey: 'industry_id',
-        as: 'industry',
+      Course.hasMany(models.Industry, {
+        foreignKey: 'course_id',
+        as: 'industries',
       });
   
       Course.belongsTo(models.Resource, {
