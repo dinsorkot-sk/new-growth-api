@@ -56,6 +56,32 @@ const handleTags = async (tags, newsId, t) => {
   }
 };
 
+const generatePaginationLinks = (req, offset, limit, totalCount, search = '') => {
+  const baseUrl = `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
+  const currentPage = Math.floor(offset / limit) + 1;
+  const totalPages = Math.ceil(totalCount / limit);
+
+  const prevOffset = offset - limit;
+  const nextOffset = offset + limit;
+
+  const prev = currentPage > 1
+    ? `${baseUrl}?offset=${prevOffset}&limit=${limit}&search=${encodeURIComponent(search)}`
+    : null;
+
+  const next = currentPage < totalPages
+    ? `${baseUrl}?offset=${nextOffset}&limit=${limit}&search=${encodeURIComponent(search)}`
+    : null;
+
+  return {
+    totalCount,
+    currentPage,
+    totalPages,
+    prev,
+    next
+  };
+};
+
+// ---------- Controllers ---------- //
 exports.createNews = async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -223,7 +249,12 @@ exports.getAllNews = async (req, res) => {
       ...n.toJSON(),
     }));
 
-    res.status(200).json(result);
+    const pagination = generatePaginationLinks(req, parsedOffset, parsedLimit, totalCount, search);
+
+    res.status(200).json({
+      data: result,
+      pagination
+    });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching news', error: err.message });
   }
