@@ -40,8 +40,10 @@ router.post('/', adminController.createAdmin);
  *             properties:
  *               username:
  *                 type: string
+ *                 example: admin
  *               password:
  *                 type: string
+ *                 example: 123456789
  *     responses:
  *       200:
  *         description: Login successful
