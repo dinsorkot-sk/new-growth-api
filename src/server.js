@@ -4,7 +4,7 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const db = require("./config/database");
 const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./swagger/swagger'); 
+const swaggerSpec = require('./swagger/swagger');
 
 // Import middleware
 const {
@@ -19,7 +19,8 @@ const {
 
 // Import routes
 const { courseRoute } = require('./routes');
-const { event: adminEvent, admin: adminLogin , news: adminNews,} = require('./routes/admin');
+const { event: userEvent , news: userNews } = require('./routes/user')
+const { event: adminEvent, admin: adminLogin, news: adminNews, } = require('./routes/admin');
 
 // Initialize express app
 const app = express();
@@ -49,6 +50,8 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.use('/api/courses', courseRoute);
+app.use('/api/event', userEvent);
+app.use('/api/news', userNews);
 
 // Admin Routes - with auth middleware
 app.use('/api/admin/', adminLogin);
