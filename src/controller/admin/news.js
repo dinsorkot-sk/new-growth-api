@@ -23,7 +23,18 @@ const removeImage = async (imageId, t) => {
 };
 
 const handleTags = async (tags, newsId, t) => {
-  const newTags = Array.isArray(tags) ? tags : JSON.parse(tags);
+  let newTags = [];
+
+  if (Array.isArray(tags)) {
+    newTags = tags;
+  } else if (typeof tags === 'string') {
+    try {
+      newTags = JSON.parse(tags);
+      if (!Array.isArray(newTags)) throw new Error(); // catch things like `{"tag": "name"}`
+    } catch {
+      newTags = tags.split(',').map(t => t.trim()).filter(Boolean); // fallback to comma-separated
+    }
+  }
   const existing = await TagAssignment.findAll({
     where: { taggable_id: newsId, taggable_type: 'news' },
     include: [{ model: Tag, as: 'tag' }],
@@ -240,10 +251,10 @@ exports.getAllNews = async (req, res) => {
           as: 'tagAssignments',
           required: false,
           where: { taggable_type: 'news' },
-          include: [{ 
-            model: Tag, 
-            as: 'tag', 
-            attributes: ['id', 'name'], 
+          include: [{
+            model: Tag,
+            as: 'tag',
+            attributes: ['id', 'name'],
           }]
         }
       ]

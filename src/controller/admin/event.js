@@ -15,7 +15,18 @@ const saveImage = async (file, refId = null, t) => {
 };
 
 const handleTags = async (tags, eventId, t) => {
-  const tagList = Array.isArray(tags) ? tags : JSON.parse(tags);
+  let tagList = [];
+
+  if (Array.isArray(tags)) {
+    tagList = tags;
+  } else if (typeof tags === 'string') {
+    try {
+      tagList = JSON.parse(tags);
+      if (!Array.isArray(tagList)) throw new Error(); // catch things like `{"tag": "name"}`
+    } catch {
+      tagList = tags.split(',').map(t => t.trim()).filter(Boolean); // fallback to comma-separated
+    }
+  }
   const existing = await TagAssignment.findAll({
     where: { taggable_id: eventId, taggable_type: 'events' },
     include: [{ model: Tag, as: 'tag' }],
@@ -140,7 +151,7 @@ exports.getAllEvents = async (req, res) => {
         { description: { [Op.like]: `%${search}%` } }
       ]
     };
-    
+
     const totalCount = await Event.count({ where });
 
     const events = await Event.findAll({

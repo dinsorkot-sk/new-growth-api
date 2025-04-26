@@ -19,8 +19,17 @@ const {
 
 // Import routes
 const { courseRoute } = require('./routes');
-const { event: userEvent , news: userNews } = require('./routes/user')
-const { event: adminEvent, admin: adminLogin, news: adminNews, } = require('./routes/admin');
+const { 
+    event: userEvent, 
+    news: userNews,
+    topic: userTopic,
+} = require('./routes/user')
+const {
+    event: adminEvent, 
+    admin: adminLogin, 
+    news: adminNews,  
+    topic: adminTopic,
+} = require('./routes/admin');
 
 // Initialize express app
 const app = express();
@@ -52,6 +61,7 @@ app.get('/', (req, res) => {
 app.use('/api/courses', courseRoute);
 app.use('/api/event', userEvent);
 app.use('/api/news', userNews);
+app.use('/api/topic', userTopic);
 
 // Admin Routes - with auth middleware
 app.use('/api/admin/', adminLogin);
@@ -62,6 +72,7 @@ app.get('/api/admin/dashboard', authMiddleware, (req, res) => {
 
 app.use('/api/admin/event', authMiddleware, adminEvent);
 app.use('/api/admin/news', authMiddleware, adminNews);
+app.use('/api/admin/topic', authMiddleware, adminTopic);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);

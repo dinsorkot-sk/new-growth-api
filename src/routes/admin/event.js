@@ -41,6 +41,7 @@ const upload = require('../../config/multer');
  *                 default: show
  *               tag:
  *                 type: string
+ *                 example: ["tag1","tag2"]
  *                 description: JSON array of tags (e.g., ["tag1","tag2"])
  *     responses:
  *       201:
