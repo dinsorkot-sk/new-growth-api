@@ -22,7 +22,8 @@ const {
     event: userEvent, 
     news: userNews,
     topic: userTopic,
-    video : userVideo
+    video : userVideo,
+    document : userDocument
 } = require('./routes/user')
 const {
     event: adminEvent, 
@@ -30,7 +31,8 @@ const {
     news: adminNews,  
     topic: adminTopic,
     course: adminCourse,
-    video: adminVideo
+    video: adminVideo,
+    document : adminDocument
     
 } = require('./routes/admin');
 
@@ -65,6 +67,7 @@ app.use('/api/event', userEvent);
 app.use('/api/news', userNews);
 app.use('/api/topic', userTopic);
 app.use('/api/video', userVideo);
+app.use('/api/document',userDocument)
 // Admin Routes - with auth middleware
 app.use('/api/admin/', adminLogin);
 
@@ -77,6 +80,7 @@ app.use('/api/admin/news', authMiddleware, adminNews);
 app.use('/api/admin/topic', authMiddleware, adminTopic);
 app.use('/api/admin/course', authMiddleware, adminCourse);
 app.use('/api/admin/video', authMiddleware, adminVideo);
+app.use('/api/admin/document',authMiddleware,adminDocument)
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
