@@ -32,6 +32,9 @@ const upload = require("../../config/multer");
  *               image:
  *                 type: string
  *                 format: binary
+ *               video:
+ *                 type: string
+ *                 format: binary
  *               name:
  *                 type: string
  *               description:
@@ -53,7 +56,10 @@ const upload = require("../../config/multer");
  *       500:
  *         description: Internal server error
  */
-router.post('/', upload.single('image'), courseController.createCourse);
+router.post('/', upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'video', maxCount: 1 }
+]), courseController.createCourse);
 
 /**
  * @swagger
@@ -144,6 +150,9 @@ router.get('/:id', courseController.getCourseById);
  *               image:
  *                 type: string
  *                 format: binary
+ *               video:
+ *                 type: string
+ *                 format: binary
  *               name:
  *                 type: string
  *               description:
@@ -152,7 +161,7 @@ router.get('/:id', courseController.getCourseById);
  *                 type: array
  *                 items:
  *                   type: string
- *                    example: industry1
+ *                   example: industry1
  *               resource_id:
  *                 type: integer
  *     responses:
@@ -167,8 +176,11 @@ router.get('/:id', courseController.getCourseById);
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', upload.single('image'), courseController.updateCourse);
-
+router.put('/:id', upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'video', maxCount: 1 }
+  ]), courseController.updateCourse);
+  
 /**
  * @swagger
  * /api/admin/course/{id}:

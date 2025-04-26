@@ -2,7 +2,7 @@ module.exports = (sequelize, DataTypes) => {
     const Resource = sequelize.define('Resource', {
       title: DataTypes.STRING,
       description: DataTypes.TEXT,
-      type_id: DataTypes.INTEGER,
+      type: DataTypes.TEXT,
       duration: DataTypes.STRING,
       pages: DataTypes.INTEGER,
       author: DataTypes.STRING,
@@ -17,11 +17,11 @@ module.exports = (sequelize, DataTypes) => {
     });
   
     Resource.associate = models => {
-      Resource.belongsTo(models.ResourceType, {
-        foreignKey: 'type_id',
-        as: 'type',
+      Resource.belongsTo(models.Course, {
+        foreignKey: 'id',
+        as: 'course',
       });
-  
+
       Resource.hasMany(models.ResourceFile, {
         foreignKey: 'resource_id',
         as: 'files'

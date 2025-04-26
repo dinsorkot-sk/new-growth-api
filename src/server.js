@@ -74,6 +74,8 @@ app.get('/api/admin/dashboard', authMiddleware, (req, res) => {
 app.use('/api/admin/event', authMiddleware, adminEvent);
 app.use('/api/admin/news', authMiddleware, adminNews);
 app.use('/api/admin/topic', authMiddleware, adminTopic);
+app.use('/api/admin/course', authMiddleware, adminCourse);
+app.use('/api/admin/video', authMiddleware, adminVideo);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
