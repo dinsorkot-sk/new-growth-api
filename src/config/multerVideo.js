@@ -24,7 +24,7 @@ const fileFilter = (req, file, cb) => {
 const uploadVideo = multer({ 
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 100 * 1024 * 1024 } // limit ขนาดไฟล์ เช่น 100MB
+  limits: { fileSize: 100 * 1024 * 1024 } 
 });
 
 module.exports = uploadVideo;

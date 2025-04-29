@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
   
     Resource.associate = models => {
       Resource.belongsTo(models.Course, {
-        foreignKey: 'id',
+        foreignKey: 'resource_id',
         as: 'course',
       });
 
