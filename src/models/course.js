@@ -32,7 +32,8 @@ module.exports = (sequelize, DataTypes) => {
   
       Course.belongsTo(models.Resource, {
         foreignKey: 'reresource_id',
-        as: 'resource',
+        as: 'resources',
+        onDelete: 'SET NULL',
       });
   
       Course.belongsTo(models.Image, {

@@ -27,7 +27,6 @@ const upload = require("../../config/multer");
  *             required:
  *               - name
  *               - description
- *               - resource_id
  *             properties:
  *               image:
  *                 type: string
@@ -44,8 +43,6 @@ const upload = require("../../config/multer");
  *                 items:
  *                   type: string
  *                   example: industry1
- *               resource_id:
- *                 type: integer
  *     responses:
  *       201:
  *         description: Course created successfully
@@ -162,8 +159,6 @@ router.get('/:id', courseController.getCourseById);
  *                 items:
  *                   type: string
  *                   example: industry1
- *               resource_id:
- *                 type: integer
  *     responses:
  *       200:
  *         description: Course updated successfully

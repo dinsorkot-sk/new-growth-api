@@ -1,4 +1,7 @@
-const { Course, Industry, Resource, Image, ResourceType, sequelize } = require('../../models');
+const path = require('path');
+const multer = require('multer');
+const fs = require('fs')
+const { Course, Industry, Resource, Image, ResourceFile, sequelize } = require('../../models');
 const { Op } = require('sequelize');
 
 // Helper functions
@@ -32,7 +35,7 @@ const generatePaginationLinks = (req, offset, limit, totalCount, search = '') =>
 exports.createCourse = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { name, description, resource_id } = req.body;
+    const { name, description, is_downloadable } = req.body;
     let industries = req.body.industries || [];
 
     if (typeof industries === 'string') {
@@ -43,37 +46,46 @@ exports.createCourse = async (req, res) => {
     const imageFile = files?.image?.[0] || null;
     const videoFile = files?.video?.[0] || null;
 
-    // เซฟรูป
+    // Save image if provided
     let image = imageFile ? await saveImage(imageFile, null, t) : null;
 
-    // ถ้ามีวิดีโอ → สร้าง resource ใหม่
+    // Create new resource if video is uploaded
     let videoResource = null;
     if (videoFile) {
       videoResource = await Resource.create({
         title: name,
         description,
         type: 'video',
-        duration: null, // คุณจะเพิ่มได้ถ้ามีข้อมูล duration มาด้วย
+        duration: null, // Optional: set if available
         author: null,
-        status: 'active', // หรือจะกำหนด status จาก req.body ก็ได้
+        status: 'active',
         published_date: new Date(),
-        file_path: videoFile.path
+      }, { transaction: t });
+
+      const fileExtension = path.extname(videoFile.originalname).replace('.', '');
+      await ResourceFile.create({
+        resource_id: videoResource.id,
+        file_type: fileExtension,
+        file_path: videoFile.path,
+        is_downloadable: is_downloadable === 'true' || is_downloadable === true
       }, { transaction: t });
     }
 
-    // สร้างคอร์ส
+    // Create course
     const course = await Course.create({
       name,
       description,
-      resource_id: videoResource?.id || resource_id || null,
+      reresource_id: videoResource?.id,
       img_id: image?.id || null,
       created_at: new Date(),
       updated_at: new Date()
     }, { transaction: t });
 
-    if (image) await image.update({ ref_id: course.id }, { transaction: t });
+    if (image) {
+      await image.update({ ref_id: course.id }, { transaction: t });
+    }
 
-    // จัดการ industries
+    // Process industries
     const industriesData = [];
     for (const item of industries) {
       let industry = await Industry.findOne({ where: { name: item }, transaction: t });
@@ -87,15 +99,21 @@ exports.createCourse = async (req, res) => {
       }
       industriesData.push(industry);
     }
+
     if (industriesData.length > 0) {
       await course.addIndustries(industriesData, { transaction: t });
     }
 
+    // Get full course with associations
     const fullCourse = await Course.findByPk(course.id, {
       include: [
         { model: Image, as: 'image' },
         { model: Industry, as: 'industries' },
-        { model: Resource, as: 'resource'}
+        {
+          model: Resource, as: 'resources', include: [
+            { model: ResourceFile, as: 'files' }
+          ]
+        }
       ],
       transaction: t
     });
@@ -117,10 +135,9 @@ exports.updateCourse = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { id } = req.params;
-    const { name, description, resource_id } = req.body;
+    const { name, description, is_downloadable } = req.body;
     let industries = req.body.industries || [];
 
-    // แปลงข้อมูล industries เป็น array ถ้าเป็น string
     if (typeof industries === 'string') {
       industries = industries.split(',').map(item => item.trim());
     }
@@ -132,81 +149,82 @@ exports.updateCourse = async (req, res) => {
     const imageFile = files?.image?.[0] || null;
     const videoFile = files?.video?.[0] || null;
 
-    // อัปเดตข้อมูลหลักของ course
     await course.update({
       name,
       description,
       updated_at: new Date()
     }, { transaction: t });
 
-    // จัดการไฟล์ภาพใหม่ (image)
+    // Image
     if (imageFile) {
       const oldImage = await Image.findByPk(course.img_id, { transaction: t });
       const newImage = await saveImage(imageFile, course.id, t);
-      if (oldImage) {
-        await oldImage.destroy({ transaction: t });
-      }
+      if (oldImage) await oldImage.destroy({ transaction: t });
       await course.update({ img_id: newImage.id }, { transaction: t });
     }
 
-    // จัดการไฟล์วิดีโอใหม่ (video)
+    // Video
     if (videoFile) {
-      // ถ้ามี resource เดิมอยู่แล้ว (จาก resource_id) → ลบออก
-      if (course.resource_id) {
-        const oldResource = await Resource.findByPk(course.resource_id, { transaction: t });
+      if (course.reresource_id) {
+        const oldResource = await Resource.findByPk(course.reresource_id, {
+          include: [{ model: ResourceFile, as: 'files' }],
+          transaction: t
+        });
+
         if (oldResource) {
+          // ลบไฟล์แนบก่อน
+          for (const file of oldResource.files || []) {
+            await file.destroy({ transaction: t });
+          }
           await oldResource.destroy({ transaction: t });
         }
       }
 
-      // สร้าง resource ใหม่
-      const newVideo = await Resource.create({
+      const newResource = await Resource.create({
         title: name,
         description,
         type: 'video',
-        duration: null, // คุณใส่เพิ่มเองได้
+        duration: null,
         author: null,
         status: 'active',
-        published_date: new Date(),
-        file_path: videoFile.path
+        published_date: new Date()
       }, { transaction: t });
 
-      await course.update({ resource_id: newVideo.id }, { transaction: t });
-    } else if (resource_id) {
-      // ถ้าอัปเดต resource_id จาก body
-      await course.update({ resource_id }, { transaction: t });
+      const fileExtension = path.extname(videoFile.originalname).replace('.', '');
+
+      await ResourceFile.create({
+        resource_id: newResource.id,
+        file_type: fileExtension,
+        file_path: videoFile.path,
+        is_downloadable: is_downloadable === 'true' || is_downloadable === true
+      }, { transaction: t });
+
+      await course.update({ reresource_id: newResource.id }, { transaction: t });
     }
 
-    // จัดการ industries ใหม่
-    await course.setIndustries([], { transaction: t });
+    // Industries
+    await Industry.destroy({ where: { course_id: course.id }, transaction: t });
 
-    const industriesData = [];
     for (const item of industries) {
-      let industry = await Industry.findOne({
-        where: { name: item },
-        transaction: t
-      });
-      if (!industry) {
-        industry = await Industry.create({
-          name: item,
-          course_id: course.id,
-          created_at: new Date(),
-          updated_at: new Date()
-        }, { transaction: t });
-      }
-      industriesData.push(industry);
+      await Industry.create({
+        name: item,
+        course_id: course.id,
+        created_at: new Date(),
+        updated_at: new Date()
+      }, { transaction: t });
     }
 
-    if (industriesData.length > 0) {
-      await course.addIndustries(industriesData, { transaction: t });
-    }
 
-    // ดึงข้อมูล course ที่อัปเดตเสร็จแล้ว
+    // Include updated course with relations
     const updatedCourse = await Course.findByPk(id, {
       include: [
         { model: Image, as: 'image' },
         { model: Industry, as: 'industries' },
-        { model: Resource, as: 'resource'}
+        {
+          model: Resource, as: 'resources', include: [
+            { model: ResourceFile, as: 'files' }
+          ]
+        }
       ],
       transaction: t
     });
@@ -223,6 +241,7 @@ exports.updateCourse = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 exports.deleteCourse = async (req, res) => {
   try {
@@ -249,7 +268,11 @@ exports.getAllCourses = async (req, res) => {
       include: [
         // แก้ไข alias จาก 'industry' เป็น 'industries'
         { model: Industry, as: 'industries', attributes: ['id', 'name'] },
-        { model: Resource, as: 'resource' },
+        {
+          model: Resource, as: 'resources', include: [
+            { model: ResourceFile, as: 'files' }
+          ]
+        },
         { model: Image, as: 'image', attributes: ['id', 'image_path'] }
       ],
       offset: parsedOffset,
@@ -274,28 +297,11 @@ exports.getCourseById = async (req, res) => {
       include: [
         // แก้ไข alias จาก 'industry' เป็น 'industries'
         { model: Industry, as: 'industries', attributes: ['id', 'name'] },
-        { model: Resource, as: 'resource' },
-        { model: Image, as: 'image', attributes: ['id', 'image_path'] }
-      ]
-    });
-
-    if (!course) return res.status(404).json({ error: 'Course not found' });
-
-    res.status(200).json(course);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-};
-
-exports.getCourseById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const course = await Course.findByPk(id, {
-      include: [
-        { model: Industry, as: 'industries', attributes: ['id', 'name'] },
-        { model: Resource, as: 'resource' },
+        {
+          model: Resource, as: 'resources', include: [
+            { model: ResourceFile, as: 'files' }
+          ]
+        },
         { model: Image, as: 'image', attributes: ['id', 'image_path'] }
       ]
     });
