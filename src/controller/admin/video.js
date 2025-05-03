@@ -18,8 +18,6 @@ const upload = multer({storage : storage});
 
 exports.uploadVideo = upload.single('video_file') 
 
-
-
 exports.createVideo = async (req, res) => {
     try {
         const { title, description, duration, author, status, published_date, is_downloadable } = req.body;
