@@ -111,7 +111,7 @@ exports.createNews = async (req, res) => {
     if (tag) await handleTags(tag, news.id, t);
 
     const fullNews = await News.findByPk(news.id, {
-      attributes: ['id', 'title', 'content', 'published_date', 'short_description'],
+      attributes: ['id', 'title', 'content', 'published_date', 'short_description', 'view_count'],
       include: [
         {
           model: Image,
@@ -166,7 +166,7 @@ exports.updateNews = async (req, res) => {
     if (tag) await handleTags(tag, news.id, t);
 
     const fullNews = await News.findByPk(news.id, {
-      attributes: ['id', 'title', 'content', 'published_date', 'short_description'],
+      attributes: ['id', 'title', 'content', 'published_date', 'short_description', 'view_count'],
       include: [
         {
           model: Image,
@@ -236,7 +236,7 @@ exports.getAllNews = async (req, res) => {
     const totalCount = await News.count({ where });
 
     const newsList = await News.findAll({
-      attributes: ['id', 'title', 'content', 'published_date', 'short_description'],
+      attributes: ['id', 'title', 'content', 'published_date', 'short_description', 'view_count'],
       where,
       offset: +offset,
       limit: +limit,
@@ -310,3 +310,51 @@ exports.getNewsById = async (req, res) => {
     res.status(500).json({ message: 'Error fetching news', error: err.message });
   }
 };
+
+exports.updateView = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const { id } = req.params
+    const { view_count } = req.body
+
+    const news = await News.findByPk(id);
+    if (!news) return res.status(404).json({ message: 'News not found' });
+
+    Object.assign(news, { view_count });
+
+    await news.save({ transaction: t });
+
+    const fullNews = await News.findByPk(news.id, {
+      attributes: ['id', 'title', 'content', 'published_date', 'short_description', 'view_count'],
+      include: [
+        {
+          model: Image,
+          as: 'image',
+          attributes: ['id', 'image_path']
+        },
+        {
+          model: TagAssignment,
+          as: 'tagAssignments',
+          required: false,
+          where: { taggable_type: 'news' },
+          include: [{
+            model: Tag,
+            as: 'tag',
+            attributes: ['id', 'name'],
+          }]
+        }
+      ],
+      transaction: t
+    });
+
+    const result = {
+      ...fullNews.toJSON(),
+    };
+
+    await t.commit();
+    res.json({ message: 'News updated', data: result });
+  } catch (err) {
+    await t.rollback();
+    res.status(500).json({ message: 'Error updating news', error: err.message });
+  }
+}
