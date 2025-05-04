@@ -221,7 +221,7 @@ exports.deleteNews = async (req, res) => {
 
 exports.getAllNews = async (req, res) => {
   try {
-    const { offset = 0, limit = 10, search = '' } = req.query;
+    const { offset = 0, limit = 10, search = '' , category = '' , sort = ' desc'} = req.query;
     const parsedOffset = parseInt(offset);
     const parsedLimit = parseInt(limit);
     const where = {
@@ -229,7 +229,8 @@ exports.getAllNews = async (req, res) => {
       deleted_at: null,
       [Op.or]: [
         { title: { [Op.like]: `%${search}%` } },
-        { content: { [Op.like]: `%${search}%` } }
+        { content: { [Op.like]: `%${search}%` } },
+        { short_description: { [Op.like]: `%${search}%` } },
       ]
     };
 
@@ -240,7 +241,7 @@ exports.getAllNews = async (req, res) => {
       where,
       offset: +offset,
       limit: +limit,
-      order: [['published_date', 'DESC']],
+      order: [['published_date', sort]],
       include: [
         {
           model: Image,
@@ -257,6 +258,7 @@ exports.getAllNews = async (req, res) => {
             model: Tag,
             as: 'tag',
             attributes: ['id', 'name'],
+            where: {name: {[Op.like]: `%${category}%`}}
           }]
         }
       ]
