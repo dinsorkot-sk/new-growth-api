@@ -66,6 +66,11 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
+app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+});
+
 const uploadDir = path.join(__dirname, '../upload');
 const videoDir = path.join(__dirname, '../video');
 app.use('/upload', express.static(uploadDir), serveIndex(uploadDir, { icons: true }));
