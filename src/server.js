@@ -67,7 +67,10 @@ app.get('/', (req, res) => {
 });
 
 const uploadDir = path.join(__dirname, '../upload');
+const videoDir = path.join(__dirname, '../video');
 app.use('/upload', express.static(uploadDir), serveIndex(uploadDir, { icons: true }));
+app.use('/video', express.static(videoDir), serveIndex(videoDir, { icons: true }));
+
 
 // API Routes
 app.use('/api/event', userEvent);
