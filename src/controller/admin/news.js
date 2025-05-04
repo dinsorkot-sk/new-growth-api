@@ -97,11 +97,12 @@ const generatePaginationLinks = (req, offset, limit, totalCount, search = '') =>
 exports.createNews = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { title, content, published_date, status, tag } = req.body;
+    const { title, content, published_date, status, tag, short_description } = req.body;
     let img = req.file ? await saveImage(req.file, t) : null;
 
     const news = await News.create({
       title, content, published_date, status,
+      short_description,
       img_id: img?.id,
       created_at: new Date(),
       updated_at: new Date()
@@ -110,7 +111,7 @@ exports.createNews = async (req, res) => {
     if (tag) await handleTags(tag, news.id, t);
 
     const fullNews = await News.findByPk(news.id, {
-      attributes: ['id', 'title', 'content', 'published_date'],
+      attributes: ['id', 'title', 'content', 'published_date', 'short_description'],
       include: [
         {
           model: Image,
@@ -148,12 +149,12 @@ exports.updateNews = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { id } = req.params;
-    const { title, content, published_date, status, tag } = req.body;
+    const { title, content, published_date, status, tag, short_description } = req.body;
 
     const news = await News.findByPk(id);
     if (!news) return res.status(404).json({ message: 'News not found' });
 
-    Object.assign(news, { title, content, published_date, status });
+    Object.assign(news, { title, content, published_date, status, short_description });
 
     if (req.file) {
       await removeImage(news.img_id, t);
@@ -165,7 +166,7 @@ exports.updateNews = async (req, res) => {
     if (tag) await handleTags(tag, news.id, t);
 
     const fullNews = await News.findByPk(news.id, {
-      attributes: ['id', 'title', 'content', 'published_date'],
+      attributes: ['id', 'title', 'content', 'published_date', 'short_description'],
       include: [
         {
           model: Image,
@@ -235,7 +236,7 @@ exports.getAllNews = async (req, res) => {
     const totalCount = await News.count({ where });
 
     const newsList = await News.findAll({
-      attributes: ['id', 'title', 'content', 'published_date'],
+      attributes: ['id', 'title', 'content', 'published_date', 'short_description'],
       where,
       offset: +offset,
       limit: +limit,

@@ -43,6 +43,9 @@ const upload = require("../../config/multer");
  *                 type: string
  *                 enum: [show, hide]
  *                 default: show
+ *               short_description:
+ *                 type: string
+ *                 example: "short_description"
  *               tag:
  *                 type: string
  *                 example: ["tag1","tag2"]
@@ -162,6 +165,9 @@ router.get('/:id', newsController.getNewsById);
  *               status:
  *                 type: string
  *                 enum: [show, hide]
+ *               short_description:
+ *                 type: string
+ *                 example: "short_description"
  *               tag:
  *                 type: string
  *                 description: JSON array of tags (e.g., ["breaking","sport"])
