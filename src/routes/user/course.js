@@ -5,9 +5,9 @@ const courseController = require("../../controller/user/course");
 
 /**
  * @swagger
- * /api/admin/course:
+ * /api/course:
  *   get:
- *     tags: [Admin Course]
+ *     tags: [User Course]
  *     summary: Get paginated course list
  *     parameters:
  *       - in: query
@@ -44,9 +44,9 @@ router.get('/', courseController.getAllCourses);
 
 /**
  * @swagger
- * /api/admin/course/{id}:
+ * /api/course/{id}:
  *   get:
- *     tags: [Admin Course]
+ *     tags: [User Course]
  *     summary: Get course by ID
  *     parameters:
  *       - in: path

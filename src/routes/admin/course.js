@@ -59,6 +59,44 @@ router.post('/', upload.fields([
 ]), courseController.createCourse);
 
 
+/**
+ * @swagger
+ * /api/admin/course:
+ *   get:
+ *     tags: [Admin Course]
+ *     summary: Get paginated course list
+ *     parameters:
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *           default: 0
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Paginated course list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/CourseResponse'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/', courseController.getAllCourses);
 
 /**
  * @swagger
