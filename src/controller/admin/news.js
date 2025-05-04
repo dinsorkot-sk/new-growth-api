@@ -268,8 +268,11 @@ exports.getAllNews = async (req, res) => {
 
     const pagination = generatePaginationLinks(req, parsedOffset, parsedLimit, totalCount, search);
 
+    const tagList = await Tag.findAll()
+
     res.status(200).json({
       data: result,
+      tag: tagList,
       pagination
     });
   } catch (err) {
