@@ -221,7 +221,7 @@ exports.deleteNews = async (req, res) => {
 
 exports.getAllNews = async (req, res) => {
   try {
-    const { offset = 0, limit = 10, search = '' , category = '' , sort = ' desc'} = req.query;
+    const { offset = 0, limit = 10, search = '' , category = '' , sort = 'DESC'} = req.query;
     const parsedOffset = parseInt(offset);
     const parsedLimit = parseInt(limit);
     const where = {
