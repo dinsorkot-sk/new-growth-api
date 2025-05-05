@@ -39,8 +39,8 @@ const {
     course: adminCourse,
     video: adminVideo,
     document: adminDocument,
-    image: adminImage
-
+    image: adminImage,
+    review: adminReview
 } = require('./routes/admin');
 
 // Initialize express app
@@ -102,6 +102,7 @@ app.use('/api/admin/course', authMiddleware, adminCourse);
 app.use('/api/admin/video', authMiddleware, adminVideo);
 app.use('/api/admin/document', authMiddleware, adminDocument);
 app.use('/api/admin/image', authMiddleware, adminImage);
+app.use('/api/admin/review', authMiddleware, adminReview);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
