@@ -59,7 +59,7 @@ router.post('/upload-document', uploadDocument.single('document_file'), document
  *     tags: [Admin Document]
  *     summary: Update document details
  *     consumes:
- *       - application/json
+ *       - multipart/form-data
  *     parameters:
  *       - in: path
  *         name: id
@@ -69,17 +69,26 @@ router.post('/upload-document', uploadDocument.single('document_file'), document
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
+ *               document_file:
+ *                 type: string
+ *                 format: binary
  *               title:
  *                 type: string
  *               description:
  *                 type: string
- *               type:
+ *               pages:
+ *                 type: integer
+ *               author:
  *                 type: string
- *                 enum: [Document, Video]
+ *               status:
+ *                 type: string
+ *                 enum: [show, hide]
+ *               is_downloadable:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: Document updated successfully
