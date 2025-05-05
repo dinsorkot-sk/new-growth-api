@@ -32,7 +32,7 @@ const storage = multer.diskStorage({
         console.log('📁 Saving image:', imagePath);
   
         const img = await Image.create({
-          ref_type: 'gallery',
+          ref_type: 'vibe',
           image_path: imagePath,
           created_at: new Date(),
           updated_at: new Date()

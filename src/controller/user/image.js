@@ -5,24 +5,28 @@ const { Op } = require('sequelize');
 exports.getAllImages = async (req, res) => {
     try {
       let { offset = 0, limit = 10, search = '' } = req.query;
+      const { ref_type } = req.params;
   
       offset = parseInt(offset);
       limit = parseInt(limit);
   
       const whereCondition = {};
   
-      // ถ้ามีการค้นหา
       if (search) {
         whereCondition.image_path = {
           [Op.like]: `%${search}%`
         };
       }
   
+      if (ref_type) {
+        whereCondition.ref_type = ref_type;
+      }
+  
       const totalCount = await Image.count({ where: whereCondition });
   
       const images = await Image.findAll({
         where: whereCondition,
-        order: [['created_at', 'DESC']], // ล่าสุดขึ้นก่อน
+        order: [['created_at', 'DESC']],
         offset,
         limit
       });
@@ -43,3 +47,4 @@ exports.getAllImages = async (req, res) => {
       });
     }
   };
+  
