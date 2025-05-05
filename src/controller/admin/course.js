@@ -57,7 +57,7 @@ exports.createCourse = async (req, res) => {
         description,
         type: 'video',
         duration: null, // Optional: set if available
-        author: null,
+        author: instructor,
         status: 'show',
         published_date: new Date(),
       }, { transaction: t });
@@ -171,8 +171,8 @@ exports.updateCourse = async (req, res) => {
 
     // Video
     if (videoFile) {
-      if (course.reresource_id) {
-        const oldResource = await Resource.findByPk(course.reresource_id, {
+      if (course.resource_id) {
+        const oldResource = await Resource.findByPk(course.resource_id, {
           include: [{ model: ResourceFile, as: 'files' }],
           transaction: t
         });
@@ -191,21 +191,21 @@ exports.updateCourse = async (req, res) => {
         description,
         type: 'video',
         duration: null,
-        author: null,
-        status: 'active',
+        author: instructor,
+        status: 'show',
         published_date: new Date()
       }, { transaction: t });
 
-      const fileExtension = path.extname(videoFile.originalname).replace('.', '');
+      const fileExtension = path.extname(videoFile.originalname).toLowerCase().replace('.', '');
 
       await ResourceFile.create({
         resource_id: newResource.id,
         file_type: fileExtension,
-        file_path: videoFile.path,
+        file_path: videoFile.path.replace(/\\/g, '/'),
         is_downloadable: is_downloadable === 'true' || is_downloadable === true
       }, { transaction: t });
 
-      await course.update({ reresource_id: newResource.id }, { transaction: t });
+      await course.update({ resource_id: newResource.id }, { transaction: t });
     }
 
     // Industries
@@ -224,22 +224,21 @@ exports.updateCourse = async (req, res) => {
     // Include updated course with relations
     const updatedCourse = await Course.findByPk(id, {
       include: [
-        { model: Image, as: 'image' },
-        { model: Industry, as: 'industries' },
+        // แก้ไข alias จาก 'industry' เป็น 'industries'
+        { model: Industry, as: 'industries', attributes: ['id', 'name'] },
         {
           model: Resource, as: 'resources', include: [
             { model: ResourceFile, as: 'files' }
           ]
-        }
+        },
+        { model: Image, as: 'image', attributes: ['id', 'image_path'] },
+        { model: Review, as: 'review' }
       ],
       transaction: t
     });
 
     await t.commit();
-    res.status(200).json({
-      message: 'Course updated successfully',
-      data: updatedCourse.toJSON()
-    });
+    res.status(200).json(updatedCourse);
 
   } catch (error) {
     await t.rollback();

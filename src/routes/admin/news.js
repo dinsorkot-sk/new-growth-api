@@ -291,8 +291,8 @@ router.delete('/:id', newsController.deleteNews);
  *           items:
  *             $ref: '#/components/schemas/TagAssignment'
  */
-
 router.put('/view/:id', newsController.updateView)
+
 /**
  * @swagger
  * components:
