@@ -136,4 +136,59 @@ exports.downloadDocument = async (req, res) => {
         details: error.message,
       });
     }
+  }; 
+
+
+  //get document and Video file 
+  exports.getAllDocumentAndVideo = async (req, res) => {
+    try {
+      let { offset = 0, limit = 10, search = '' } = req.query;
+  
+      offset = parseInt(offset);
+      limit = parseInt(limit);
+  
+      const whereCondition = {
+        type: { [Op.in]: ['Document', 'Video'] },
+        status: 'show'
+      };
+  
+      if (search) {
+        whereCondition.title = { [Op.like]: `%${search}%` };
+      }
+  
+      const totalCount = await Resource.count({ where: whereCondition });
+  
+      const resources = await Resource.findAll({
+        where: whereCondition,
+        include: [
+          {
+            model: ResourceFile,
+            as: 'files',
+            where: { is_downloadable: true },
+            required: false,
+            attributes: ['id', 'file_path', 'file_type', 'is_downloadable']
+          }
+        ],
+        order: [['created_at', 'DESC']],
+        offset,
+        limit
+      });
+  
+      res.status(200).json({
+        data: resources,
+        pagination: {
+          total: totalCount,
+          offset,
+          limit,
+        },
+      });
+  
+    } catch (error) {
+      console.error('เกิดข้อผิดพลาดในการดึงข้อมูลเอกสารและวิดีโอ:', error);
+      res.status(500).json({ 
+        error: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์',
+        details: error.message,
+        stack: error.stack,
+      });
+    }
   };

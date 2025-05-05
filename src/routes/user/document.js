@@ -145,9 +145,51 @@ router.get('/downloadDocument/:id', documentController.downloadDocument);
  *           nullable: true
  */
 
-
-
-
+/**
+ * @swagger
+ * /api/document/getallDocumentAndResouceVideo:
+ *   get:
+ *     tags: [User Document]
+ *     summary: Get paginated list of documents and videos (status = show)
+ *     parameters:
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *           default: 0
+ *         description: Pagination offset
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Pagination limit
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by title
+ *     responses:
+ *       200:
+ *         description: Paginated document and video list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/DocumentResponse'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/getallDocumentAndResouceVideo', documentController.getAllDocumentAndVideo);
 
 
 
