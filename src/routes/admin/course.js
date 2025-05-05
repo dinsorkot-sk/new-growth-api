@@ -98,6 +98,33 @@ router.post('/', upload.fields([
  */
 router.get('/', courseController.getAllCourses);
 
+
+/**
+ * @swagger
+ * /api/course/{id}:
+ *   get:
+ *     tags: [User Course]
+ *     summary: Get course by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Course details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CourseResponse'
+ *       404:
+ *         description: Course not found
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:id', courseController.getCourseById); 
+
 /**
  * @swagger
  * /api/admin/course/{id}:
