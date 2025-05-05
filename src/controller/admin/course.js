@@ -309,7 +309,8 @@ exports.getCourseById = async (req, res) => {
             { model: ResourceFile, as: 'files' }
           ]
         },
-        { model: Image, as: 'image', attributes: ['id', 'image_path'] }
+        { model: Image, as: 'image', attributes: ['id', 'image_path'] },
+        { model: Review, as: 'review' }
       ]
     });
 
