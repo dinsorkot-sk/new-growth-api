@@ -110,13 +110,15 @@ exports.createCourse = async (req, res) => {
     // Get full course with associations
     const fullCourse = await Course.findByPk(course.id, {
       include: [
-        { model: Image, as: 'image' },
-        { model: Industry, as: 'industries' },
+        // แก้ไข alias จาก 'industry' เป็น 'industries'
+        { model: Industry, as: 'industries', attributes: ['id', 'name'] },
         {
           model: Resource, as: 'resources', include: [
             { model: ResourceFile, as: 'files' }
           ]
-        }
+        },
+        { model: Image, as: 'image', attributes: ['id', 'image_path'] },
+        { model: Review, as: 'review' }
       ],
       transaction: t
     });
