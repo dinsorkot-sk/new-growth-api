@@ -27,7 +27,8 @@ const {
     topic: userTopic,
     video: userVideo,
     document: userDocument,
-    course: userCourse
+    course: userCourse,
+    review: userReview
 } = require('./routes/user')
 const {
     event: adminEvent,
@@ -84,6 +85,7 @@ app.use('/api/topic', userTopic);
 app.use('/api/video', userVideo);
 app.use('/api/document', userDocument);
 app.use('/api/course', userCourse)
+app.use('/api/review', userReview)
 // Admin Routes - with auth middleware
 app.use('/api/admin/', adminLogin);
 

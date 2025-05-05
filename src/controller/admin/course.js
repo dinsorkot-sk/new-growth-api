@@ -1,7 +1,7 @@
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs')
-const { Course, Industry, Resource, Image, ResourceFile, sequelize } = require('../../models');
+const { Course, Industry, Resource, Image, ResourceFile, Review, sequelize } = require('../../models');
 const { Op } = require('sequelize');
 
 // Helper functions
@@ -35,7 +35,7 @@ const generatePaginationLinks = (req, offset, limit, totalCount, search = '') =>
 exports.createCourse = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { name, description, is_downloadable } = req.body;
+    const { name, description, is_downloadable, sub_description, additional_info, instructor } = req.body;
     let industries = req.body.industries || [];
 
     if (typeof industries === 'string') {
@@ -66,7 +66,7 @@ exports.createCourse = async (req, res) => {
       await ResourceFile.create({
         resource_id: videoResource.id,
         file_type: fileExtension,
-        file_path: videoFile.path,
+        file_path: videoFile.path.replace(/\\/g, '/'),
         is_downloadable: is_downloadable === 'true' || is_downloadable === true
       }, { transaction: t });
     }
@@ -75,7 +75,10 @@ exports.createCourse = async (req, res) => {
     const course = await Course.create({
       name,
       description,
-      reresource_id: videoResource?.id,
+      sub_description,
+      additional_info,
+      instructor,
+      resource_id: videoResource?.id,
       img_id: image?.id || null,
       created_at: new Date(),
       updated_at: new Date()
@@ -135,7 +138,7 @@ exports.updateCourse = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { id } = req.params;
-    const { name, description, is_downloadable } = req.body;
+    const { name, description, is_downloadable, sub_description, additional_info, instructor } = req.body;
     let industries = req.body.industries || [];
 
     if (typeof industries === 'string') {
@@ -152,6 +155,9 @@ exports.updateCourse = async (req, res) => {
     await course.update({
       name,
       description,
+      sub_description,
+      additional_info,
+      instructor,
       updated_at: new Date()
     }, { transaction: t });
 
@@ -265,23 +271,25 @@ exports.getAllCourses = async (req, res) => {
     const totalCount = await Course.count({ where: { deleted_at: null } });
     const courses = await Course.findAll({
       include: [
-        // แก้ไข alias จาก 'industry' เป็น 'industries'
         { model: Industry, as: 'industries', attributes: ['id', 'name'] },
         {
           model: Resource, as: 'resources', include: [
             { model: ResourceFile, as: 'files' }
           ]
         },
-        { model: Image, as: 'image', attributes: ['id', 'image_path'] }
+        { model: Image, as: 'image', attributes: ['id', 'image_path'] },
+        { model: Review, as: 'review' }
       ],
       offset: parsedOffset,
       limit: parsedLimit,
       order: [['created_at', 'DESC']]
     });
 
+    const industries = await Industry.findAll();
+
     const pagination = generatePaginationLinks(req, parsedOffset, parsedLimit, totalCount, search);
 
-    res.status(200).json({ data: courses, pagination });
+    res.status(200).json({ data: courses, industries, pagination });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
