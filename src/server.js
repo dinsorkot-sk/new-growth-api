@@ -28,7 +28,8 @@ const {
     video: userVideo,
     document: userDocument,
     course: userCourse,
-    review: userReview
+    review: userReview,
+    image: userImage
 } = require('./routes/user')
 const {
     event: adminEvent,
@@ -37,7 +38,8 @@ const {
     topic: adminTopic,
     course: adminCourse,
     video: adminVideo,
-    document: adminDocument
+    document: adminDocument,
+    image: adminImage
 
 } = require('./routes/admin');
 
@@ -86,7 +88,7 @@ app.use('/api/video', userVideo);
 app.use('/api/document', userDocument);
 app.use('/api/course', userCourse)
 app.use('/api/review', userReview)
-// Admin Routes - with auth middleware
+app.use('/api/image', userImage)
 app.use('/api/admin/', adminLogin);
 
 app.get('/api/admin/dashboard', authMiddleware, (req, res) => {
@@ -99,6 +101,7 @@ app.use('/api/admin/topic', authMiddleware, adminTopic);
 app.use('/api/admin/course', authMiddleware, adminCourse);
 app.use('/api/admin/video', authMiddleware, adminVideo);
 app.use('/api/admin/document', authMiddleware, adminDocument);
+app.use('/api/admin/image', authMiddleware, adminImage);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);

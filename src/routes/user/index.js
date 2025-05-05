@@ -5,6 +5,7 @@ const video = require('./video')
 const document = require('./document')
 const course = require('./course')
 const review = require('./review')
+const image = require('./image')
 
 module.exports = {
   event,
@@ -13,5 +14,6 @@ module.exports = {
   video,
   document,
   course,
-  review
+  review,
+  image
 }
