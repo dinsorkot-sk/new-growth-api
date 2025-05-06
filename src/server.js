@@ -6,6 +6,7 @@ const db = require("./config/database");
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger/swagger');
 const serveIndex = require('serve-index');
+const net = require('net');
 
 const path = require('path');
 
@@ -107,6 +108,66 @@ app.use('/api/admin/document', authMiddleware, adminDocument);
 app.use('/api/admin/image', authMiddleware, adminImage);
 app.use('/api/admin/review', authMiddleware, adminReview);
 app.use('/api/admin/answer', authMiddleware, adminAnswer);
+
+
+app.post('/send-email', async (req, res) => {
+    const { recipient, subject, message } = req.body;
+
+    const smtpHost = "smtp.yourdomain.com"; // เปลี่ยนตามของคุณ
+    const smtpPort = 25; // หรือ 587 / 465 แล้วแต่ server
+    const username = "your-username";
+    const password = "your-password";
+    const sender = "you@yourdomain.com";
+
+    const client = net.createConnection(smtpPort, smtpHost, () => {
+        console.log("✅ Connected to SMTP server");
+    });
+
+    let buffer = "";
+
+    client.on('data', (data) => {
+        buffer += data.toString();
+        console.log("📨 SMTP:", buffer);
+
+        if (buffer.includes("220")) {
+            client.write(`EHLO localhost\r\n`);
+        } else if (buffer.includes("250") && !buffer.includes("AUTH")) {
+            client.write(`AUTH LOGIN\r\n`);
+        } else if (buffer.includes("334")) {
+            if (buffer.includes("VXNlcm5hbWU6")) {
+                client.write(Buffer.from(username).toString('base64') + `\r\n`);
+            } else if (buffer.includes("UGFzc3dvcmQ6")) {
+                client.write(Buffer.from(password).toString('base64') + `\r\n`);
+            }
+        } else if (buffer.includes("235")) {
+            client.write(`MAIL FROM:<${sender}>\r\n`);
+        } else if (buffer.includes("250 2.1.0")) {
+            client.write(`RCPT TO:<${recipient}>\r\n`);
+        } else if (buffer.includes("250 2.1.5")) {
+            client.write(`DATA\r\n`);
+        } else if (buffer.includes("354")) {
+            const emailBody =
+                `From: ${sender}\r\nTo: ${recipient}\r\nSubject: ${subject}\r\n\r\n${message}\r\n.\r\n`;
+            client.write(emailBody);
+        } else if (buffer.includes("250 2.0.0")) {
+            client.write(`QUIT\r\n`);
+            res.status(200).json({ success: true, message: "Email sent successfully" });
+            client.end();
+        }
+        // reset buffer for next step
+        buffer = '';
+    });
+
+    client.on('error', (err) => {
+        console.error("❌ SMTP error:", err);
+        res.status(500).json({ success: false, error: err.message });
+    });
+
+    client.on('end', () => {
+        console.log("📴 SMTP connection closed");
+    });
+});
+
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
