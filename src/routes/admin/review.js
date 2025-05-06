@@ -5,7 +5,7 @@ const reviewController = require("../../controller/admin/review");
 /**
  * @swagger
  * tags:
- *   name: User Reviews
+ *   name: Admin Reviews
  *   description: Review management endpoints
  */
 
@@ -13,7 +13,7 @@ const reviewController = require("../../controller/admin/review");
  * @swagger
  * /api/admin/review:
  *   delete:
- *     tags: [User Reviews]
+ *     tags: [Admin Reviews]
  *     summary: Delete a review by ID and Course ID
  *     requestBody:
  *       required: true

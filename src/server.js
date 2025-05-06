@@ -29,7 +29,8 @@ const {
     document: userDocument,
     course: userCourse,
     review: userReview,
-    image: userImage
+    image: userImage,
+    answer: userAnswer
 } = require('./routes/user')
 const {
     event: adminEvent,
@@ -40,7 +41,8 @@ const {
     video: adminVideo,
     document: adminDocument,
     image: adminImage,
-    review: adminReview
+    review: adminReview,
+    answer: adminAnswer
 } = require('./routes/admin');
 
 // Initialize express app
@@ -89,6 +91,7 @@ app.use('/api/document', userDocument);
 app.use('/api/course', userCourse)
 app.use('/api/review', userReview)
 app.use('/api/image', userImage)
+app.use('/api/answer', userAnswer)
 app.use('/api/admin/', adminLogin);
 
 app.get('/api/admin/dashboard', authMiddleware, (req, res) => {
@@ -103,6 +106,7 @@ app.use('/api/admin/video', authMiddleware, adminVideo);
 app.use('/api/admin/document', authMiddleware, adminDocument);
 app.use('/api/admin/image', authMiddleware, adminImage);
 app.use('/api/admin/review', authMiddleware, adminReview);
+app.use('/api/admin/answer', authMiddleware, adminAnswer);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
