@@ -73,6 +73,38 @@ router.get('/:id', topicController.getTopicById);
 
 /**
  * @swagger
+ * /api/topic/{id}:
+ *   put:
+ *     tags: [User Topics]
+ *     summary: Update topic
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateTopicRequest'
+ *     responses:
+ *       200:
+ *         description: Topic updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/TopicResponse'
+ *       404:
+ *         description: Topic not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put('/:id', topicController.updateTopic);
+
+/**
+ * @swagger
  * components:
  *   schemas:
  *     TopicRequest:
@@ -95,6 +127,16 @@ router.get('/:id', topicController.getTopicById);
  *           type: string
  *           enum: [show, hide]
  *           default: hide
+ *         answers:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/AnswerRequest'
+ * 
+ *     UpdateTopicRequest:
+ *       type: object
+ *       required:
+ *         - answers
+ *       properties:
  *         answers:
  *           type: array
  *           items:
