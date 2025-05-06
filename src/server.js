@@ -6,8 +6,6 @@ const db = require("./config/database");
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger/swagger');
 const serveIndex = require('serve-index');
-const net = require('net');
-const tls = require('tls');
 const path = require('path');
 require('dotenv').config();
 
@@ -114,78 +112,6 @@ app.use('/api/admin/image', authMiddleware, adminImage);
 app.use('/api/admin/review', authMiddleware, adminReview);
 app.use('/api/admin/answer', authMiddleware, adminAnswer);
 
-// Enhanced Email Sending Endpoint
-app.post('/send-email', (req, res) => {
-    const { sender, recipient, subject, message } = req.body;
-  
-    // ตรวจสอบข้อมูลที่จำเป็น
-    if (!sender || !recipient || !subject || !message) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Missing required fields: sender, recipient, subject, message' 
-      });
-    }
-  
-    // ตั้งค่า SMTP สำหรับ localhost
-    const smtpHost = 'localhost';
-    const smtpPort = 25; // พอร์ต SMTP มาตรฐาน
-  
-    const client = net.createConnection(smtpPort, smtpHost, () => {
-      console.log('✅ Connected to local SMTP server');
-    });
-  
-    let buffer = '';
-  
-    client.on('data', (chunk) => {
-      buffer += chunk.toString();
-      console.log('📨 SMTP:', buffer.trim());
-  
-      if (buffer.includes('220 ')) {
-        client.write(`EHLO localhost\r\n`);
-      } else if (buffer.includes('250 ')) {
-        client.write(`MAIL FROM:<${sender}>\r\n`);
-      } else if (buffer.includes('250 2.1.0')) {
-        client.write(`RCPT TO:<${recipient}>\r\n`);
-      } else if (buffer.includes('250 2.1.5')) {
-        client.write(`DATA\r\n`);
-      } else if (buffer.includes('354 ')) {
-        const emailData = 
-          `From: ${sender}\r\n` +
-          `To: ${recipient}\r\n` +
-          `Subject: ${subject}\r\n` +
-          `\r\n${message}\r\n.\r\n`;
-        client.write(emailData);
-      } else if (buffer.includes('250 2.0.0')) {
-        client.write('QUIT\r\n');
-        res.json({ 
-          success: true, 
-          info: 'Email sent successfully!',
-          details: {
-            sender,
-            recipient,
-            subject
-          }
-        });
-        client.end();
-      }
-    });
-  
-    client.on('error', (err) => {
-      console.error('❌ SMTP error:', err);
-      if (!res.headersSent) {
-        res.status(500).json({ 
-          success: false, 
-          error: 'Mail delivery failed',
-          details: err.message 
-        });
-      }
-      client.end();
-    });
-  
-    client.on('end', () => {
-      console.log('📴 SMTP connection closed');
-    });
-  });
 
 // Error handling middleware
 app.use(errorHandler);
