@@ -7,8 +7,9 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger/swagger');
 const serveIndex = require('serve-index');
 const net = require('net');
-
+const tls = require('tls');
 const path = require('path');
+require('dotenv').config();
 
 // Import middleware
 const {
@@ -64,24 +65,26 @@ app.use(responseTimeLogger);
 app.use(sanitizeBody);
 app.use(rateLimit);
 
+// Swagger documentation
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/openapi.json', (req, res) => res.json(swaggerSpec));
 
-// Routes
+// Basic route
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
+// CORS settings
 app.use((req, res, next) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     next();
 });
 
+// Static files serving
 const uploadDir = path.join(__dirname, '../upload');
 const videoDir = path.join(__dirname, '../video');
 app.use('/upload', express.static(uploadDir), serveIndex(uploadDir, { icons: true }));
 app.use('/video', express.static(videoDir), serveIndex(videoDir, { icons: true }));
-
 
 // API Routes
 app.use('/api/event', userEvent);
@@ -95,10 +98,12 @@ app.use('/api/image', userImage)
 app.use('/api/answer', userAnswer)
 app.use('/api/admin/', adminLogin);
 
+// Admin dashboard route
 app.get('/api/admin/dashboard', authMiddleware, (req, res) => {
     res.json({ message: `ยินดีต้อนรับคุณ ${req.user.username}` });
 });
 
+// Admin protected routes
 app.use('/api/admin/event', authMiddleware, adminEvent);
 app.use('/api/admin/news', authMiddleware, adminNews);
 app.use('/api/admin/topic', authMiddleware, adminTopic);
@@ -109,67 +114,80 @@ app.use('/api/admin/image', authMiddleware, adminImage);
 app.use('/api/admin/review', authMiddleware, adminReview);
 app.use('/api/admin/answer', authMiddleware, adminAnswer);
 
-
-app.post('/send-email', async (req, res) => {
-    const { recipient, subject, message } = req.body;
-
-    const smtpHost = "smtp.yourdomain.com"; // เปลี่ยนตามของคุณ
-    const smtpPort = 25; // หรือ 587 / 465 แล้วแต่ server
-    const username = "your-username";
-    const password = "your-password";
-    const sender = "you@yourdomain.com";
-
+// Enhanced Email Sending Endpoint
+app.post('/send-email', (req, res) => {
+    const { sender, recipient, subject, message } = req.body;
+  
+    // ตรวจสอบข้อมูลที่จำเป็น
+    if (!sender || !recipient || !subject || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: sender, recipient, subject, message' 
+      });
+    }
+  
+    // ตั้งค่า SMTP สำหรับ localhost
+    const smtpHost = 'localhost';
+    const smtpPort = 25; // พอร์ต SMTP มาตรฐาน
+  
     const client = net.createConnection(smtpPort, smtpHost, () => {
-        console.log("✅ Connected to SMTP server");
+      console.log('✅ Connected to local SMTP server');
     });
-
-    let buffer = "";
-
-    client.on('data', (data) => {
-        buffer += data.toString();
-        console.log("📨 SMTP:", buffer);
-
-        if (buffer.includes("220")) {
-            client.write(`EHLO localhost\r\n`);
-        } else if (buffer.includes("250") && !buffer.includes("AUTH")) {
-            client.write(`AUTH LOGIN\r\n`);
-        } else if (buffer.includes("334")) {
-            if (buffer.includes("VXNlcm5hbWU6")) {
-                client.write(Buffer.from(username).toString('base64') + `\r\n`);
-            } else if (buffer.includes("UGFzc3dvcmQ6")) {
-                client.write(Buffer.from(password).toString('base64') + `\r\n`);
-            }
-        } else if (buffer.includes("235")) {
-            client.write(`MAIL FROM:<${sender}>\r\n`);
-        } else if (buffer.includes("250 2.1.0")) {
-            client.write(`RCPT TO:<${recipient}>\r\n`);
-        } else if (buffer.includes("250 2.1.5")) {
-            client.write(`DATA\r\n`);
-        } else if (buffer.includes("354")) {
-            const emailBody =
-                `From: ${sender}\r\nTo: ${recipient}\r\nSubject: ${subject}\r\n\r\n${message}\r\n.\r\n`;
-            client.write(emailBody);
-        } else if (buffer.includes("250 2.0.0")) {
-            client.write(`QUIT\r\n`);
-            res.status(200).json({ success: true, message: "Email sent successfully" });
-            client.end();
-        }
-        // reset buffer for next step
-        buffer = '';
+  
+    let buffer = '';
+  
+    client.on('data', (chunk) => {
+      buffer += chunk.toString();
+      console.log('📨 SMTP:', buffer.trim());
+  
+      if (buffer.includes('220 ')) {
+        client.write(`EHLO localhost\r\n`);
+      } else if (buffer.includes('250 ')) {
+        client.write(`MAIL FROM:<${sender}>\r\n`);
+      } else if (buffer.includes('250 2.1.0')) {
+        client.write(`RCPT TO:<${recipient}>\r\n`);
+      } else if (buffer.includes('250 2.1.5')) {
+        client.write(`DATA\r\n`);
+      } else if (buffer.includes('354 ')) {
+        const emailData = 
+          `From: ${sender}\r\n` +
+          `To: ${recipient}\r\n` +
+          `Subject: ${subject}\r\n` +
+          `\r\n${message}\r\n.\r\n`;
+        client.write(emailData);
+      } else if (buffer.includes('250 2.0.0')) {
+        client.write('QUIT\r\n');
+        res.json({ 
+          success: true, 
+          info: 'Email sent successfully!',
+          details: {
+            sender,
+            recipient,
+            subject
+          }
+        });
+        client.end();
+      }
     });
-
+  
     client.on('error', (err) => {
-        console.error("❌ SMTP error:", err);
-        res.status(500).json({ success: false, error: err.message });
+      console.error('❌ SMTP error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          success: false, 
+          error: 'Mail delivery failed',
+          details: err.message 
+        });
+      }
+      client.end();
     });
-
+  
     client.on('end', () => {
-        console.log("📴 SMTP connection closed");
+      console.log('📴 SMTP connection closed');
     });
-});
+  });
 
-
-// Error handling middleware (should be last)
+// Error handling middleware
 app.use(errorHandler);
 
 // Database connection
