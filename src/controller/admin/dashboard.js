@@ -4,7 +4,12 @@ exports.getDashboardData = async (req, res) => {
     try {
         const [users, courses, answers, reviews, news] = await Promise.all([
             User.findAll({ raw: true }),
-            Course.findAll({ raw: true }),
+            Course.findAll({
+                include: [
+                    { model: Review, as: 'review' }
+                ],
+                nest: true // ทำให้ course.review เป็น array จริง
+            }),
             TopicAnswer.findAll({ raw: true }),
             Review.findAll({ raw: true }),
             News.findAll({ raw: true })
@@ -12,59 +17,56 @@ exports.getDashboardData = async (req, res) => {
 
         const today = new Date().toISOString().split('T')[0];
 
-        // คำนวณวันที่เริ่มต้นและสิ้นสุดของเดือนที่แล้ว
         const firstDayLastMonth = new Date();
         firstDayLastMonth.setMonth(firstDayLastMonth.getMonth() - 1);
         firstDayLastMonth.setDate(1);
+
         const lastDayLastMonth = new Date(firstDayLastMonth);
         lastDayLastMonth.setMonth(lastDayLastMonth.getMonth() + 1);
         lastDayLastMonth.setDate(0);
+
         const firstDayLastMonthISO = firstDayLastMonth.toISOString().split('T')[0];
         const lastDayLastMonthISO = lastDayLastMonth.toISOString().split('T')[0];
 
-        // คำนวณจำนวนผู้เข้าใช้งานในวันนี้
         const todayVisitors = users.filter(user => {
-            const lastLoginDate = user.lastLogin ? new Date(user.lastLogin).toISOString().split('T')[0] : null;
-            return lastLoginDate === today;
+            const created = user.created_at && new Date(user.created_at).toISOString().split('T')[0];
+            return created === today;
         }).length;
 
-        // คำนวณจำนวนผู้เข้าใช้งานในเดือนนี้
         const thisMonthVisitors = users.filter(user => {
-            const lastLoginDate = user.lastLogin ? new Date(user.lastLogin).toISOString().split('T')[0] : null;
-            return lastLoginDate >= today.substring(0, 7) + "-01";  // วันที่เริ่มต้นของเดือนนี้
+            const created = user.created_at && new Date(user.created_at).toISOString().split('T')[0];
+            return created >= today.slice(0, 7) + "-01";
         }).length;
 
-        // คำนวณจำนวนผู้เข้าใช้งานในเดือนที่แล้ว
         const lastMonthVisitors = users.filter(user => {
-            const lastLoginDate = user.lastLogin ? new Date(user.lastLogin).toISOString().split('T')[0] : null;
-            return lastLoginDate >= firstDayLastMonthISO && lastLoginDate <= lastDayLastMonthISO;
+            const login = user.lastLogin && new Date(user.lastLogin).toISOString().split('T')[0];
+            return login >= firstDayLastMonthISO && login <= lastDayLastMonthISO;
         }).length;
 
-        // คำนวณเปอร์เซ็นต์การเปลี่ยนแปลงระหว่างเดือนนี้และเดือนที่แล้ว
         let changePercentage = 0;
         if (lastMonthVisitors > 0) {
             changePercentage = ((thisMonthVisitors - lastMonthVisitors) / lastMonthVisitors) * 100;
+        } else if (thisMonthVisitors > 0) {
+            changePercentage = 100;
         }
 
-        // คำนวณข้อความใหม่ในวันนี้
         const todayMessages = [...answers, ...reviews].filter(item => {
-            const createdDate = item.createdAt ? new Date(item.createdAt).toISOString().split('T')[0] : null;
-            return createdDate === today;
+            const created = item.created_at && new Date(item.created_at).toISOString().split('T')[0];
+            return created === today;
         }).length;
 
-        // คำนวณกิจกรรมใหม่ในวันนี้
         const todayActivities = news.filter(n => {
-            const newsDate = n.date ? new Date(n.date).toISOString().split('T')[0] : null;
-            return newsDate === today;
+            const date = n.date && new Date(n.date).toISOString().split('T')[0];
+            return date === today;
         }).length;
 
         const monthlyUsers = Array.from({ length: 6 }, (_, i) => {
             const date = new Date();
             date.setMonth(date.getMonth() - i);
-            const month = date.toISOString().slice(0, 7); // YYYY-MM
+            const month = date.toISOString().slice(0, 7);
 
             const count = users.filter(u => {
-                const userMonth = u.created_at?.toISOString().slice(0, 7);
+                const userMonth = u.created_at && new Date(u.created_at).toISOString().slice(0, 7);
                 return userMonth === month;
             }).length;
 
@@ -72,22 +74,28 @@ exports.getDashboardData = async (req, res) => {
         }).reverse();
 
         const data = {
-            visitorCount: todayVisitors, // จำนวนผู้เข้าใช้งานวันนี้
-            courseCount: courses.length,  // จำนวนหลักสูตร
-            newMessages: todayMessages,  // จำนวนข้อความใหม่
-            todayActivities: todayActivities,  // จำนวนกิจกรรมใหม่
+            visitorCount: todayVisitors,
+            courseCount: courses.length,
+            newMessages: todayMessages,
+            todayActivities,
             visitorsComparison: {
-                thisMonth: thisMonthVisitors,  // จำนวนผู้เข้าใช้งานในเดือนนี้
-                lastMonth: lastMonthVisitors,  // จำนวนผู้เข้าใช้งานในเดือนที่แล้ว
-                change: changePercentage.toFixed(2)  // การเปลี่ยนแปลงในรูปเปอร์เซ็นต์
+                thisMonth: thisMonthVisitors,
+                lastMonth: lastMonthVisitors,
+                change: changePercentage.toFixed(2)
             },
-            courses: courses.map(course => ({
-                id: course.id,
-                name: course.name,
-                students: course.students || 0
-            })),
+            courses: courses.map(course => {
+                const reviews = Array.isArray(course.review) ? course.review : [];
+                const totalScore = reviews.reduce((sum, r) => sum + (parseFloat(r.score) || 0), 0);
+                const avgScore = reviews.length > 0 ? (totalScore / reviews.length).toFixed(2) : "0.00";
+
+                return {
+                    id: course.id,
+                    name: course.name,
+                    score: avgScore
+                };
+            }),
             latestMessages: [...answers, ...reviews]
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                 .slice(0, 5),
             latestActivities: news
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
