@@ -30,7 +30,8 @@ const {
     course: userCourse,
     review: userReview,
     image: userImage,
-    answer: userAnswer
+    answer: userAnswer,
+    user: User
 } = require('./routes/user')
 const {
     event: adminEvent,
@@ -42,7 +43,8 @@ const {
     document: adminDocument,
     image: adminImage,
     review: adminReview,
-    answer: adminAnswer
+    answer: adminAnswer,
+    dashboard: adminDashboard
 } = require('./routes/admin');
 
 // Initialize express app
@@ -95,11 +97,10 @@ app.use('/api/review', userReview)
 app.use('/api/image', userImage)
 app.use('/api/answer', userAnswer)
 app.use('/api/admin/', adminLogin);
+app.use('/api/user', User);
 
 // Admin dashboard route
-app.get('/api/admin/dashboard', authMiddleware, (req, res) => {
-    res.json({ message: `ยินดีต้อนรับคุณ ${req.user.username}` });
-});
+app.use('/api/admin/dashboard', authMiddleware, adminDashboard);
 
 // Admin protected routes
 app.use('/api/admin/event', authMiddleware, adminEvent);
@@ -111,7 +112,6 @@ app.use('/api/admin/document', authMiddleware, adminDocument);
 app.use('/api/admin/image', authMiddleware, adminImage);
 app.use('/api/admin/review', authMiddleware, adminReview);
 app.use('/api/admin/answer', authMiddleware, adminAnswer);
-
 
 // Error handling middleware
 app.use(errorHandler);

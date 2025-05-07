@@ -7,6 +7,7 @@ const course = require('./course')
 const review = require('./review')
 const image = require('./image')
 const answer = require('./answer')
+const user = require('./user')
 
 module.exports = {
   event,
@@ -17,5 +18,6 @@ module.exports = {
   course,
   review,
   image,
-  answer
+  answer,
+  user
 }

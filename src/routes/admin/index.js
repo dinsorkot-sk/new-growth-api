@@ -8,6 +8,7 @@ const document = require('./document')
 const image = require('./image')
 const review = require('./review')
 const answer = require('./answer')
+const dashboard = require('./dashboard')
 
 module.exports = {
   event,
@@ -19,5 +20,6 @@ module.exports = {
   document,
   image,
   review,
-  answer
+  answer,
+  dashboard
 }

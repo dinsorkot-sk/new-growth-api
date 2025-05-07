@@ -1,11 +1,8 @@
-
 const path = require('path');
 const multer = require('multer');
-const fs = require('fs')
-const { Course, Industry, Resource, Image, ResourceFile, sequelize } = require('../../models');
+const fs = require('fs');
+const { Course, Industry, Resource, Image, ResourceFile, sequelize, TagAssignment, Tag } = require('../../models');
 const { Op } = require('sequelize');
-
-
 
 const generatePaginationLinks = (req, offset, limit, totalCount, search = '') => {
   const baseUrl = `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
@@ -23,17 +20,24 @@ const generatePaginationLinks = (req, offset, limit, totalCount, search = '') =>
   };
 };
 
-
 exports.getAllCourses = async (req, res) => {
   try {
     const { offset = 0, limit = 10, search = '' } = req.query;
     const parsedOffset = parseInt(offset);
     const parsedLimit = parseInt(limit);
 
-    const totalCount = await Course.count({ where: { deleted_at: null } });
+    const whereClause = {
+      deleted_at: null
+    };
+
+    if (search) {
+      whereClause.name = { [Op.like]: `%${search}%` };
+    }
+
+    const totalCount = await Course.count({ where: whereClause });
     const courses = await Course.findAll({
+      where: whereClause,
       include: [
-        // แก้ไข alias จาก 'industry' เป็น 'industries'
         { model: Industry, as: 'industries', attributes: ['id', 'name'] },
         {
           model: Resource, as: 'resources', include: [
@@ -62,7 +66,6 @@ exports.getCourseById = async (req, res) => {
 
     const course = await Course.findByPk(id, {
       include: [
-        // แก้ไข alias จาก 'industry' เป็น 'industries'
         { model: Industry, as: 'industries', attributes: ['id', 'name'] },
         {
           model: Resource, as: 'resources', include: [
@@ -79,5 +82,50 @@ exports.getCourseById = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+exports.updateView = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+    const { view_count } = req.body;
+
+    const course = await Course.findByPk(id);
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+
+    course.view_count = view_count;
+    await course.save({ transaction: t });
+
+    const fullCourse = await Course.findByPk(course.id, {
+      attributes: ['id', 'title', 'content', 'published_date', 'short_description', 'view_count'],
+      include: [
+        {
+          model: Image,
+          as: 'image',
+          attributes: ['id', 'image_path']
+        },
+        {
+          model: TagAssignment,
+          as: 'tagAssignments',
+          required: false,
+          where: { taggable_type: 'course' },
+          include: [
+            {
+              model: Tag,
+              as: 'tag',
+              attributes: ['id', 'name']
+            }
+          ]
+        }
+      ],
+      transaction: t
+    });
+
+    await t.commit();
+    res.json({ message: 'Course updated', data: fullCourse });
+  } catch (err) {
+    await t.rollback();
+    res.status(500).json({ message: 'Error updating course', error: err.message });
   }
 };
