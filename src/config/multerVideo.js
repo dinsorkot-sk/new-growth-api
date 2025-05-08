@@ -4,11 +4,12 @@ const path = require('path');
 // ตั้งค่า storage สำหรับ video โดยเฉพาะ
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../../video'));
+    cb(null,'video');
 },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname)); // ตั้งชื่อไฟล์ไม่ซ้ำ
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
   }
 });
 
