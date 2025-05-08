@@ -56,7 +56,7 @@ exports.createDocument = async (req, res) => {
     const resourceFile = await ResourceFile.create({
       resource_id: newResource.id,
       file_type: fileExtension,
-      file_path: documentPath.path.replace(/\\/g, '/'),
+      file_path: documentPath.replace(/\\/g, '/'),
       is_downloadable: is_downloadable === 'true' || is_downloadable === true
     });
 
@@ -121,7 +121,7 @@ exports.updateDocumentResource = async (req, res) => {
 
         await resourceFile.update({
           file_type: fileExtension,
-          file_path: documentPath.path.replace(/\\/g, '/'),
+          file_path: documentPath.replace(/\\/g, '/'),
         });
 
         // ลบไฟล์เก่าถ้ามีอยู่

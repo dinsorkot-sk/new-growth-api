@@ -44,7 +44,7 @@ exports.createVideo = async (req, res) => {
         const resourceFile = await ResourceFile.create({
             resource_id: newResource.id,
             file_type: fileExtension,
-            file_path: videoPath.path.replace(/\\/g, '/'),
+            file_path: videoPath.replace(/\\/g, '/'),
             is_downloadable: is_downloadable === 'true' || is_downloadable === true
         });
         
@@ -110,7 +110,7 @@ exports.updateVideoResource = async (req, res) => {
                 
                 await resourceFile.update({
                     file_type: fileExtension,
-                    file_path: videoPath.path.replace(/\\/g, '/'),
+                    file_path: videoPath.replace(/\\/g, '/'),
                 });
                 
                 // ลบไฟล์เก่าถ้ามีอยู่
@@ -122,7 +122,7 @@ exports.updateVideoResource = async (req, res) => {
                 resourceFile = await ResourceFile.create({
                     resource_id: id,
                     file_type: fileExtension,
-                    file_path: videoPath.path.replace(/\\/g, '/'),
+                    file_path: videoPath.replace(/\\/g, '/'),
                     is_downloadable: is_downloadable === 'true' || is_downloadable === true
                 });
             }
