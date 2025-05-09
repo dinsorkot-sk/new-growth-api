@@ -44,7 +44,8 @@ exports.getAllCourses = async (req, res) => {
             { model: ResourceFile, as: 'files' }
           ]
         },
-        { model: Image, as: 'image', attributes: ['id', 'image_path'] }
+        { model: Image, as: 'image', attributes: ['id', 'image_path'] },
+        { model: Review, as: 'review' }
       ],
       offset: parsedOffset,
       limit: parsedLimit,
@@ -72,7 +73,8 @@ exports.getCourseById = async (req, res) => {
             { model: ResourceFile, as: 'files' }
           ]
         },
-        { model: Image, as: 'image', attributes: ['id', 'image_path'] }
+        { model: Image, as: 'image', attributes: ['id', 'image_path'] },
+        { model: Review, as: 'review' }
       ]
     });
 

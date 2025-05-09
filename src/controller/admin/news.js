@@ -237,7 +237,6 @@ exports.getAllNews = async (req, res) => {
     const totalCount = await News.count({ where });
 
     const newsList = await News.findAll({
-      attributes: ['id', 'title', 'content', 'published_date', 'short_description', 'view_count'],
       where,
       offset: +offset,
       limit: +limit,
