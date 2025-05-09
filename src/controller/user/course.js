@@ -1,7 +1,7 @@
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
-const { Course, Industry, Resource, Image, ResourceFile, sequelize, TagAssignment, Tag } = require('../../models');
+const { Course, Industry, Resource, Image, ResourceFile, sequelize, Review, TagAssignment, Tag } = require('../../models');
 const { Op } = require('sequelize');
 
 const generatePaginationLinks = (req, offset, limit, totalCount, search = '') => {
