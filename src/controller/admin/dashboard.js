@@ -76,6 +76,7 @@ exports.getDashboardData = async (req, res) => {
         const data = {
             visitorCount: todayVisitors,
             courseCount: courses.length,
+            newsCount: news.length,
             newMessages: todayMessages,
             todayActivities,
             visitorsComparison: {
