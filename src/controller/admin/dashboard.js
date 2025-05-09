@@ -96,7 +96,13 @@ exports.getDashboardData = async (req, res) => {
             }),
             latestMessages: [...answers, ...reviews]
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                .slice(0, 5),
+                .slice(0, 5)
+                .map(msg => ({
+                    ...msg,
+                    type: msg.topic_id ? 'forum' : 'course',
+                    answer_text: msg.answer_text || '',
+                    comment: msg.comment || ''
+                })),
             latestActivities: news
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .slice(0, 5),
