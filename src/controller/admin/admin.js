@@ -1,15 +1,21 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt')
 const { Admin } = require('../../models');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'MONPT';
 
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 exports.createAdmin = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password , email } = req.body;
 
-    if (!username || !password) {
-      return res.status(400).json({ error: 'กรุณาระบุ username และ password' });
+    if (!username || !password || !email) {
+      return res.status(400).json({ error: 'กรุณาระบุ username password และ email' });
     }
 
     const existing = await Admin.findOne({ where: { username } });
@@ -22,7 +28,8 @@ exports.createAdmin = async (req, res) => {
 
     const newAdmin = await Admin.create({
       username,
-      password_hash
+      password_hash , 
+      email
     });
 
     return res.status(201).json({
@@ -30,6 +37,7 @@ exports.createAdmin = async (req, res) => {
       admin: {
         id: newAdmin.id,
         username: newAdmin.username,
+        email : newAdmin.email,
         created_at: newAdmin.created_at
       }
     });
@@ -83,6 +91,120 @@ exports.loginAdmin = async (req, res) => {
   } catch (error) {
     console.error('เกิดข้อผิดพลาดในการเข้าสู่ระบบ:', error);
     res.status(500).json({ error: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์' });
+  }
+}; 
+
+
+//generate OTP
+exports.sendOTP = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const admin = await Admin.findOne({ where: { email } });
+
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found with this email' });
+    }
+
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // หมดอายุใน 10 นาที
+
+    
+    admin.otp_code = otp;
+    admin.otp_expiry = otpExpiry;
+    await admin.save();
+
+    
+   const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_HOST,           // อีเมลดึงมากจาก env
+    pass: process.env.SMTP_PASSWORD  // App password ดึงมากจาก env
+  }
+});
+
+    // ส่งอีเมล
+    await transporter.sendMail({
+      from: '"Admin Support"startup0278@gmail.com',
+      to: email,
+      subject: 'Your OTP for password reset',
+      text: `Your OTP code is: ${otp}. It will expire in 10 minutes.`
+    });
+
+   
+
+    return res.status(200).json({ message: 'OTP sent to your email' });
+
+  } catch (err) {
+    console.error('Send OTP Error:', err);
+    return res.status(500).json({ message: 'Failed to send OTP', error: err.message });
+  }
+};
+
+
+//verify OTP
+
+exports.verifyOtp = async (req, res) => {
+  const { email, otp_code } = req.body;
+
+  try {
+    const admin = await Admin.findOne({ where: {email} });
+
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    // ตรวจสอบ OTP
+    if (!admin.otp_code || admin.otp_code !== otp_code) {
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
+
+    // ตรวจสอบเวลาหมดอายุ
+    const now = new Date();
+    if (admin.otp_expires_at && new Date(admin.otp_expires_at) < now) {
+      return res.status(400).json({ message: 'OTP has expired' });
+    }
+
+    // OTP ถูกต้อง → เคลียร์ OTP ทิ้ง
+    admin.otp_code = null;
+    admin.otp_expires_at = null;
+    await admin.save();
+
+    res.status(200).json({ message: 'OTP verified successfully' });
+  } catch (err) {
+    console.error('Verify OTP error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+
+//reset password
+exports.resetPassword = async (req, res) => {
+  const { email, new_password } = req.body;
+
+  try {
+    const admin = await Admin.findOne({ where: { email } });
+
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    // ตรวจสอบว่า OTP ถูกยืนยันแล้วหรือยัง (เราคลียร์ otp_code หลัง verify สำเร็จ)
+    if (admin.otp_code || admin.otp_expires_at) {
+      return res.status(400).json({ message: 'OTP not verified yet' });
+    }
+
+    // hash รหัสผ่านใหม่
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+
+    // บันทึก
+    admin.password_hash = hashedPassword;
+    await admin.save();
+
+    res.status(200).json({ message: 'Password reset successfully' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 
