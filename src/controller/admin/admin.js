@@ -12,7 +12,7 @@ function generateOTP() {
 
 exports.createAdmin = async (req, res) => {
   try {
-    const { username, password , email } = req.body;
+    const { username, password, email } = req.body;
 
     if (!username || !password || !email) {
       return res.status(400).json({ error: 'กรุณาระบุ username password และ email' });
@@ -28,7 +28,7 @@ exports.createAdmin = async (req, res) => {
 
     const newAdmin = await Admin.create({
       username,
-      password_hash , 
+      password_hash,
       email
     });
 
@@ -37,7 +37,7 @@ exports.createAdmin = async (req, res) => {
       admin: {
         id: newAdmin.id,
         username: newAdmin.username,
-        email : newAdmin.email,
+        email: newAdmin.email,
         created_at: newAdmin.created_at
       }
     });
@@ -92,7 +92,7 @@ exports.loginAdmin = async (req, res) => {
     console.error('เกิดข้อผิดพลาดในการเข้าสู่ระบบ:', error);
     res.status(500).json({ error: 'เกิดข้อผิดพลาดที่เซิร์ฟเวอร์' });
   }
-}; 
+};
 
 
 //generate OTP
@@ -109,19 +109,19 @@ exports.sendOTP = async (req, res) => {
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // หมดอายุใน 10 นาที
 
-    
+
     admin.otp_code = otp;
     admin.otp_expiry = otpExpiry;
     await admin.save();
 
-    
-   const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_HOST,           // อีเมลดึงมากจาก env
-    pass: process.env.SMTP_PASSWORD  // App password ดึงมากจาก env
-  }
-});
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_HOST,           // อีเมลดึงมากจาก env
+        pass: process.env.SMTP_PASSWORD         // App password ดึงมากจาก env
+      }
+    });
 
     // ส่งอีเมล
     await transporter.sendMail({
@@ -130,8 +130,6 @@ exports.sendOTP = async (req, res) => {
       subject: 'Your OTP for password reset',
       text: `Your OTP code is: ${otp}. It will expire in 10 minutes.`
     });
-
-   
 
     return res.status(200).json({ message: 'OTP sent to your email' });
 
@@ -148,7 +146,7 @@ exports.verifyOtp = async (req, res) => {
   const { email, otp_code } = req.body;
 
   try {
-    const admin = await Admin.findOne({ where: {email} });
+    const admin = await Admin.findOne({ where: { email } });
 
     if (!admin) {
       return res.status(404).json({ message: 'Admin not found' });

@@ -172,6 +172,11 @@ router.get('/downloadDocument/:id', documentController.downloadDocument);
  *         schema:
  *           type: string
  *         description: Search by title
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *         description: Type of resource (Document or Video)
  *     responses:
  *       200:
  *         description: Paginated document and video list

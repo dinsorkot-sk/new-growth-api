@@ -142,13 +142,13 @@ exports.downloadDocument = async (req, res) => {
   //get document and Video file 
   exports.getAllDocumentAndVideo = async (req, res) => {
     try {
-      let { offset = 0, limit = 10, search = '' } = req.query;
+      let { offset = 0, limit = 10, search = '' , type = 'Document'} = req.query;
   
       offset = parseInt(offset);
       limit = parseInt(limit);
   
       const whereCondition = {
-        type: { [Op.in]: ['Document', 'Video'] },
+        type: { [Op.in]: [type] },
         status: 'show'
       };
   
