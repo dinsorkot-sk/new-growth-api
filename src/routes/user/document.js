@@ -176,6 +176,9 @@ router.get('/downloadDocument/:id', documentController.downloadDocument);
  *         name: type
  *         schema:
  *           type: string
+ *           enum:
+ *             - Document
+ *             - Video
  *         description: Type of resource (Document or Video)
  *     responses:
  *       200:
