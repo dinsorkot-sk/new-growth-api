@@ -26,6 +26,13 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'resource_id',
         as: 'files'
       });
+
+      Resource.belongsTo(models.News, {
+        foreignKey: 'news_id',
+        as: 'news',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      });
     };
   
     return Resource;

@@ -32,6 +32,12 @@ const upload = require("../../config/multer");
  *               image:
  *                 type: string
  *                 format: binary
+ *               video:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Multiple video files can be uploaded
  *               title:
  *                 type: string
  *               content:
@@ -45,10 +51,8 @@ const upload = require("../../config/multer");
  *                 default: show
  *               short_description:
  *                 type: string
- *                 example: "short_description"
  *               tag:
  *                 type: string
- *                 example: ["tag1","tag2"]
  *                 description: JSON array of tags (e.g., ["breaking","sport"])
  *     responses:
  *       201:
@@ -56,11 +60,30 @@ const upload = require("../../config/multer");
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/NewsResponse'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "News created"
+ *                 data:
+ *                   $ref: '#/components/schemas/NewsResponse'
  *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Error creating news"
+ *                 error:
+ *                   type: string
  */
-router.post('/', upload.single('image'), newsController.createNews);
+router.post('/', upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'video', maxCount: 5 }
+]), newsController.createNews);
 
 /**
  * @swagger
@@ -75,6 +98,7 @@ router.post('/', upload.single('image'), newsController.createNews);
  *           type: integer
  *           minimum: 0
  *           default: 0
+ *         description: Number of records to skip
  *       - in: query
  *         name: limit
  *         schema:
@@ -82,10 +106,24 @@ router.post('/', upload.single('image'), newsController.createNews);
  *           minimum: 1
  *           maximum: 100
  *           default: 10
+ *         description: Number of records to return
  *       - in: query
  *         name: search
  *         schema:
  *           type: string
+ *         description: Search term for title, content, or short description
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Filter by tag category
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *           default: DESC
+ *         description: Sort order for published_date
  *     responses:
  *       200:
  *         description: Paginated news list
@@ -98,6 +136,10 @@ router.post('/', upload.single('image'), newsController.createNews);
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/NewsResponse'
+ *                 tag:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Tag'
  *                 pagination:
  *                   $ref: '#/components/schemas/Pagination'
  *       500:
@@ -117,6 +159,7 @@ router.get('/', newsController.getAllNews);
  *         required: true
  *         schema:
  *           type: integer
+ *         description: News ID
  *     responses:
  *       200:
  *         description: News details
@@ -145,6 +188,7 @@ router.get('/:id', newsController.getNewsById);
  *         required: true
  *         schema:
  *           type: integer
+ *         description: News ID
  *     requestBody:
  *       required: true
  *       content:
@@ -155,6 +199,12 @@ router.get('/:id', newsController.getNewsById);
  *               image:
  *                 type: string
  *                 format: binary
+ *               video:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Multiple video files can be uploaded
  *               title:
  *                 type: string
  *               content:
@@ -167,7 +217,6 @@ router.get('/:id', newsController.getNewsById);
  *                 enum: [show, hide]
  *               short_description:
  *                 type: string
- *                 example: "short_description"
  *               tag:
  *                 type: string
  *                 description: JSON array of tags (e.g., ["breaking","sport"])
@@ -177,13 +226,22 @@ router.get('/:id', newsController.getNewsById);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/NewsResponse'
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "News updated"
+ *                 data:
+ *                   $ref: '#/components/schemas/NewsResponse'
  *       404:
  *         description: News not found
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', upload.single('image'), newsController.updateNews);
+router.put('/:id', upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'video', maxCount: 5 }
+]), newsController.updateNews);
 
 /**
  * @swagger
@@ -197,9 +255,18 @@ router.put('/:id', upload.single('image'), newsController.updateNews);
  *         required: true
  *         schema:
  *           type: integer
+ *         description: News ID
  *     responses:
  *       200:
  *         description: News deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "News deleted"
  *       404:
  *         description: News not found
  *       500:
@@ -213,15 +280,13 @@ router.delete('/:id', newsController.deleteNews);
  *   put:
  *     tags: [Admin News]
  *     summary: Update news view count
- *     description: อัปเดตจำนวนการเข้าดูข่าว
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
- *           example: 1
- *         description: ID ของข่าว
+ *         description: News ID
  *     requestBody:
  *       required: true
  *       content:
@@ -233,11 +298,10 @@ router.delete('/:id', newsController.deleteNews);
  *             properties:
  *               view_count:
  *                 type: integer
- *                 example: 100
- *                 description: จำนวนการเข้าดูใหม่
+ *                 description: New view count
  *     responses:
  *       200:
- *         description: อัปเดตจำนวนการเข้าดูสำเร็จ
+ *         description: View count updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -249,47 +313,9 @@ router.delete('/:id', newsController.deleteNews);
  *                 data:
  *                   $ref: '#/components/schemas/NewsResponse'
  *       404:
- *         description: ไม่พบข่าว
- *         content:
- *           application/json:
- *             example:
- *               message: "News not found"
+ *         description: News not found
  *       500:
- *         description: เกิดข้อผิดพลาดบนเซิร์ฟเวอร์
- *         content:
- *           application/json:
- *             example:
- *               message: "Error updating news"
- *               error: "Error message details"
- */
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     NewsResponse:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *         title:
- *           type: string
- *         content:
- *           type: string
- *         published_date:
- *           type: string
- *           format: date-time
- *         short_description:
- *           type: string
- *         view_count:
- *           type: integer
- *           description: จำนวนการเข้าดู (เพิ่มเข้าใหม่)
- *         image:
- *           $ref: '#/components/schemas/Image'
- *         tagAssignments:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/TagAssignment'
+ *         description: Internal server error
  */
 router.put('/view/:id', newsController.updateView)
 
@@ -312,6 +338,10 @@ router.put('/view/:id', newsController.updateView)
  *         status:
  *           type: string
  *           enum: [show, hide]
+ *         short_description:
+ *           type: string
+ *         view_count:
+ *           type: integer
  *         image:
  *           $ref: '#/components/schemas/Image'
  *         tagAssignments:
@@ -357,8 +387,5 @@ router.put('/view/:id', newsController.updateView)
  *           type: string
  *           nullable: true
  */
-
-
-
 
 module.exports = router;

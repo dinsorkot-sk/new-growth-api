@@ -2,13 +2,6 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../../controller/admin/admin');
 
-
-/**
- * @swagger
- * tags:
- *   name: Admin Management Admin
- *   description: Admin management endpoints
- */
 /**
  * @swagger
  * /api/admin:
@@ -25,6 +18,8 @@ const adminController = require('../../controller/admin/admin');
  *               username:
  *                 type: string
  *               password:
+ *                 type: string
+ *               email:
  *                 type: string
  *     responses:
  *       201:

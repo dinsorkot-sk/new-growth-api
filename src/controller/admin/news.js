@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { sequelize, News, Image, Tag, TagAssignment } = require('../../models');
+const { sequelize, News, Image, Tag, TagAssignment, Resource, ResourceFile } = require('../../models');
 const path = require('path');
 const fs = require('fs');
 
@@ -21,6 +21,34 @@ const removeImage = async (imageId, t) => {
     if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
     await img.destroy({ transaction: t });
   }
+};
+
+const handleVideos = async (files, newsId, t) => {
+  if (!files || !files.video) return [];
+
+  const videoResources = [];
+  for (const videoFile of files.video) {
+    const resource = await Resource.create({
+      title: `Video for news ${newsId}`,
+      description: '',
+      type: 'video',
+      duration: null,
+      author: 'System',
+      status: 'show',
+      published_date: new Date(),
+    }, { transaction: t });
+
+    const fileExtension = path.extname(videoFile.originalname).toLowerCase().replace('.', '');
+    await ResourceFile.create({
+      resource_id: resource.id,
+      file_type: fileExtension,
+      file_path: videoFile.path.replace(/\\/g, '/'),
+      is_downloadable: false
+    }, { transaction: t });
+
+    videoResources.push(resource);
+  }
+  return videoResources;
 };
 
 const handleTags = async (tags, newsId, t) => {
@@ -98,7 +126,7 @@ exports.createNews = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { title, content, published_date, status, tag, short_description } = req.body;
-    let img = req.file ? await saveImage(req.file, t) : null;
+    let img = req.files?.image?.[0] ? await saveImage(req.files.image[0], t) : null;
 
     const news = await News.create({
       title, content, published_date, status,
@@ -107,6 +135,12 @@ exports.createNews = async (req, res) => {
       created_at: new Date(),
       updated_at: new Date()
     }, { transaction: t });
+
+    // Handle video uploads
+    const videoResources = await handleVideos(req.files, news.id, t);
+    if (videoResources.length > 0) {
+      await news.setResources(videoResources, { transaction: t });
+    }
 
     if (tag) await handleTags(tag, news.id, t);
 
@@ -117,6 +151,13 @@ exports.createNews = async (req, res) => {
           model: Image,
           as: 'image',
           attributes: ['id', 'image_path']
+        },
+        {
+          model: Resource,
+          as: 'resources',
+          include: [
+            { model: ResourceFile, as: 'files' }
+          ]
         },
         {
           model: TagAssignment,
@@ -156,10 +197,35 @@ exports.updateNews = async (req, res) => {
 
     Object.assign(news, { title, content, published_date, status, short_description });
 
-    if (req.file) {
+    if (req.files?.image?.[0]) {
       await removeImage(news.img_id, t);
-      const newImg = await saveImage(req.file, t);
+      const newImg = await saveImage(req.files.image[0], t);
       news.img_id = newImg.id;
+    }
+
+    // Handle video updates
+    if (req.files?.video) {
+      // Remove existing videos
+      const existingResources = await Resource.findAll({
+        include: [{
+          model: ResourceFile,
+          as: 'files'
+        }],
+        where: { '$resources.news_id$': news.id }
+      });
+
+      for (const resource of existingResources) {
+        for (const file of resource.files || []) {
+          await file.destroy({ transaction: t });
+        }
+        await resource.destroy({ transaction: t });
+      }
+
+      // Add new videos
+      const videoResources = await handleVideos(req.files, news.id, t);
+      if (videoResources.length > 0) {
+        await news.setResources(videoResources, { transaction: t });
+      }
     }
 
     await news.save({ transaction: t });
@@ -172,6 +238,13 @@ exports.updateNews = async (req, res) => {
           model: Image,
           as: 'image',
           attributes: ['id', 'image_path']
+        },
+        {
+          model: Resource,
+          as: 'resources',
+          include: [
+            { model: ResourceFile, as: 'files' }
+          ]
         },
         {
           model: TagAssignment,
@@ -249,6 +322,13 @@ exports.getAllNews = async (req, res) => {
           required: false
         },
         {
+          model: Resource,
+          as: 'resources',
+          include: [
+            { model: ResourceFile, as: 'files' }
+          ]
+        },
+        {
           model: TagAssignment,
           as: 'tagAssignments',
           required: false,
@@ -290,6 +370,13 @@ exports.getNewsById = async (req, res) => {
           model: Image,
           as: 'image',
           attributes: ['id', 'image_path']
+        },
+        {
+          model: Resource,
+          as: 'resources',
+          include: [
+            { model: ResourceFile, as: 'files' }
+          ]
         },
         {
           model: TagAssignment,

@@ -58,6 +58,14 @@ module.exports = (sequelize, DataTypes) => {
       },
       as: 'tagAssignments'
     });
+
+    // Resource association for videos
+    News.hasMany(models.Resource, {
+      foreignKey: 'news_id',
+      as: 'resources',
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    });
   };
 
   return News;
