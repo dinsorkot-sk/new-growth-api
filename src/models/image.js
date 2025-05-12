@@ -1,6 +1,3 @@
-
-
-
 module.exports = (sequelize, DataTypes) => {
     const Image = sequelize.define('Image', {
       ref_id: {
@@ -20,6 +17,9 @@ module.exports = (sequelize, DataTypes) => {
       },
       deleted_at: {
         type: DataTypes.DATE,
+      },
+      description: {
+        type: DataTypes.TEXT,
       }
     }, {
       tableName: 'images',
