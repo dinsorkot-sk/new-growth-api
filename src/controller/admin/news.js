@@ -204,29 +204,53 @@ exports.updateNews = async (req, res) => {
     }
 
     // Handle video updates
-    if (req.files?.video) {
-      // Remove existing videos
-      const existingResources = await Resource.findAll({
-        include: [{
-          model: ResourceFile,
-          as: 'files'
-        }],
-        where: { '$resources.news_id$': news.id }
-      });
+    let keepVideoIds = [];
+    if (req.body.keep_video_ids) {
+      try {
+        keepVideoIds = JSON.parse(req.body.keep_video_ids);
+      } catch {
+        keepVideoIds = [];
+      }
+    }
 
-      for (const resource of existingResources) {
+    // หา Resource ทั้งหมดที่เป็นวิดีโอของข่าวนี้
+    const existingResources = await Resource.findAll({
+      include: [{
+        model: ResourceFile,
+        as: 'files'
+      }],
+      where: { type: 'video', news_id: news.id }
+    });
+
+    // ลบ Resource ที่ไม่ได้อยู่ใน keepVideoIds
+    for (const resource of existingResources) {;
+      // ถ้า resource นี้ไม่มีไฟล์ใดๆ ที่ id อยู่ใน keepVideoIds เลย ให้ลบ resource และไฟล์ทั้งหมด
+      const filesToKeep = (resource.files || []).filter(file => keepVideoIds.includes(file.id));
+      if (filesToKeep.length === 0) {
+        // ลบไฟล์ทั้งหมดใน resource นี้
         for (const file of resource.files || []) {
           await file.destroy({ transaction: t });
         }
         await resource.destroy({ transaction: t });
-      }
-
-      // Add new videos
-      const videoResources = await handleVideos(req.files, news.id, t);
-      if (videoResources.length > 0) {
-        await news.setResources(videoResources, { transaction: t });
+      } else {
+        // ถ้ามีไฟล์ที่ต้องเก็บไว้ ให้ลบเฉพาะไฟล์ที่ไม่ได้อยู่ใน keepVideoIds
+        for (const file of resource.files || []) {
+          if (!keepVideoIds.includes(file.id)) {
+            await file.destroy({ transaction: t });
+          }
+        }
       }
     }
+
+    // เพิ่ม Resource ใหม่จากไฟล์ที่อัปโหลดมา
+    let newVideoResources = [];
+    if (req.files?.video) {
+      newVideoResources = await handleVideos(req.files, news.id, t);
+    }
+
+    // setResources ใหม่ (รวมของเดิมที่ keep + ของใหม่)
+    const keptResources = existingResources.filter(r => keepVideoIds.includes(r.id));
+    await news.setResources([...keptResources, ...newVideoResources], { transaction: t });
 
     await news.save({ transaction: t });
     if (tag) await handleTags(tag, news.id, t);
@@ -298,7 +322,6 @@ exports.getAllNews = async (req, res) => {
     const parsedOffset = parseInt(offset);
     const parsedLimit = parseInt(limit);
     const where = {
-      status: 'show',
       deleted_at: null,
       [Op.or]: [
         { title: { [Op.like]: `%${search}%` } },
@@ -364,7 +387,7 @@ exports.getAllNews = async (req, res) => {
 exports.getNewsById = async (req, res) => {
   try {
     const news = await News.findOne({
-      where: { id: req.params.id, status: 'show' },
+      where: { id: req.params.id},
       include: [
         {
           model: Image,

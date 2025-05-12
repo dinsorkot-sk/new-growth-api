@@ -220,6 +220,9 @@ router.get('/:id', newsController.getNewsById);
  *               tag:
  *                 type: string
  *                 description: JSON array of tags (e.g., ["breaking","sport"])
+ *               keepVideoIds:
+ *                 type: string
+ *                 description: JSON array of video ids (e.g., ["1","2"])
  *     responses:
  *       200:
  *         description: News updated successfully
