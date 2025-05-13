@@ -125,7 +125,7 @@ exports.sendOTP = async (req, res) => {
 
     // ส่งอีเมล
     await transporter.sendMail({
-      from: '"Admin Support"startup0278@gmail.com',
+      from: '"Admin Support"' + process.env.EMAIL_HOST,
       to: email,
       subject: 'Your OTP for password reset',
       text: `Your OTP code is: ${otp}. It will expire in 10 minutes.`
