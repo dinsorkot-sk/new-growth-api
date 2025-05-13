@@ -31,7 +31,8 @@ const {
     review: userReview,
     image: userImage,
     answer: userAnswer,
-    user: User
+    user: User,
+    admission: userAdmission
 } = require('./routes/user')
 const {
     event: adminEvent,
@@ -44,7 +45,8 @@ const {
     image: adminImage,
     review: adminReview,
     answer: adminAnswer,
-    dashboard: adminDashboard
+    dashboard: adminDashboard,
+    admission: adminAdmission
 } = require('./routes/admin');
 
 // Initialize express app
@@ -98,6 +100,7 @@ app.use('/api/image', userImage)
 app.use('/api/answer', userAnswer)
 app.use('/api/admin/', adminLogin);
 app.use('/api/user', User);
+app.use('/api/admission', userAdmission);
 
 // Admin dashboard route
 app.use('/api/admin/dashboard', authMiddleware, adminDashboard);
@@ -112,6 +115,7 @@ app.use('/api/admin/document', authMiddleware, adminDocument);
 app.use('/api/admin/image', authMiddleware, adminImage);
 app.use('/api/admin/review', authMiddleware, adminReview);
 app.use('/api/admin/answer', authMiddleware, adminAnswer);
+app.use('/api/admin/admission', authMiddleware, adminAdmission);
 
 // Error handling middleware
 app.use(errorHandler);

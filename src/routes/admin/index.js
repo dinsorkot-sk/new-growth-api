@@ -9,6 +9,7 @@ const image = require('./image')
 const review = require('./review')
 const answer = require('./answer')
 const dashboard = require('./dashboard')
+const admission = require('./admission')
 
 module.exports = {
   event,
@@ -21,5 +22,6 @@ module.exports = {
   image,
   review,
   answer,
-  dashboard
+  dashboard,
+  admission
 }
