@@ -18,7 +18,7 @@ exports.createAdmin = async (req, res) => {
       return res.status(400).json({ error: 'กรุณาระบุ username password และ email' });
     }
 
-    const existing = await Admin.findOne({ where: { username } });
+    const existing = await Admin.findOne({ where: { username, deleted_at: null } });
     if (existing) {
       return res.status(409).json({ error: 'มีชื่อผู้ใช้นี้อยู่แล้ว' });
     }
