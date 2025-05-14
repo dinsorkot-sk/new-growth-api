@@ -1,4 +1,4 @@
-const { Image } = require('../../models');
+const { Image, Resource, ResourceFile } = require('../../models');
 const { Op } = require('sequelize');
 const path = require('path');
 
@@ -11,31 +11,73 @@ exports.getAllImages = async (req, res) => {
     offset = parseInt(offset);
     limit = parseInt(limit);
 
-    const where = {
-      deleted_at: null,
-      [Op.or]: [
-        { image_path: { [Op.like]: `%${search}%` } },
-        { ref_type: { [Op.like]: `%${ref_type}%` } },
-      ]
-    };
-
-    const totalCount = await Image.count({ where });
-
-    const images = await Image.findAll({
-      where,
-      order: [['created_at', 'DESC']],
-      offset,
-      limit
-    });
-
-    res.status(200).json({
-      total: totalCount,
-      images,
-      pagination: {
+    if (ref_type === 'vibe') {
+      // ดึงรูปภาพที่ ref_type = 'vibe'
+      const imageCount = await Image.count();
+      const images = await Image.findAll({
+        order: [['created_at', 'DESC']],
         offset,
         limit
-      }
-    });
+      });
+
+      // ดึงวิดีโอ (Resource ที่ type = 'Video')
+      const videoWhere = {
+        type: 'video',
+        status: 'show',
+        deleted_at: null,
+        title: { [Op.like]: `%${search}%` },
+      };
+      const videoCount = await Resource.count({ where: videoWhere });
+      const videos = await Resource.findAll({
+        where: videoWhere,
+        include: [
+          {
+            model: ResourceFile,
+            as: 'files',
+            required: false,
+            attributes: ['id', 'file_path', 'file_type', 'is_downloadable']
+          }
+        ],
+        order: [['created_at', 'DESC']],
+        offset,
+        limit
+      });
+
+      return res.status(200).json({
+        images,
+        videos,
+        pagination: {
+          images: { total: imageCount, offset, limit },
+          videos: { total: videoCount, offset, limit }
+        }
+      });
+    } else {
+      // กรณี ref_type อื่น ๆ (เหมือนเดิม)
+      const where = {
+        deleted_at: null,
+        [Op.or]: [
+          { image_path: { [Op.like]: `%${search}%` } },
+          { ref_type: { [Op.like]: `%${ref_type}%` } },
+        ]
+      };
+
+      const totalCount = await Image.count({ where });
+      const images = await Image.findAll({
+        where,
+        order: [['created_at', 'DESC']],
+        offset,
+        limit
+      });
+
+      res.status(200).json({
+        total: totalCount,
+        images,
+        pagination: {
+          offset,
+          limit
+        }
+      });
+    }
   } catch (error) {
     console.error('เกิดข้อผิดพลาดในการดึงรูปภาพ:', error);
     res.status(500).json({
