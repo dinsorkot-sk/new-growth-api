@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt')
 const { Admin } = require('../../models');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-const sequelize = require('../../config/sequelize');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'MONPT';
 
@@ -283,7 +282,7 @@ exports.updateAdmin = async (req, res) => {
 
 // ลบแอดมิน
 exports.deleteAdmin = async (req, res) => {
-  const t = await sequelize.transaction();
+  const t = await Admin.sequelize.transaction();
   try {
     const { id } = req.params;
     const admin = await Admin.findByPk(id);
