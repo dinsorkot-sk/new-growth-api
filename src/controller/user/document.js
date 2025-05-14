@@ -148,9 +148,12 @@ exports.getAllDocumentAndVideo = async (req, res) => {
     limit = parseInt(limit);
 
     const whereCondition = {
-      type: { [Op.or]: [type] },
       status: 'show'
     };
+
+    if (type) {
+      whereCondition.type = { [Op.or]: [type] };
+    }
 
     if (search) {
       whereCondition.title = { [Op.like]: `%${search}%` };
