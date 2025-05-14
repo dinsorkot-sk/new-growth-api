@@ -137,6 +137,12 @@ app.listen(PORT, () => {
 app.get('/video/:filename', (req, res) => {
     const filePath = path.join(videoDir, req.params.filename);
     const fs = require('fs');
+
+    // เช็คไฟล์ก่อน
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'ไม่พบไฟล์วิดีโอ' });
+    }
+
     const stat = fs.statSync(filePath);
     const fileSize = stat.size;
     const range = req.headers.range;
