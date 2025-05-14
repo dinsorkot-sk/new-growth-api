@@ -17,12 +17,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ 
-  storage,
-  limits: {
-    fieldSize: 10 * 1024 * 1024, // 10MB ต่อ field
-    fileSize: 100 * 1024 * 1024, // 100MB ต่อไฟล์
-    files: 10 // จำนวนไฟล์สูงสุดต่อ request
-  }
+  storage
 });
 
 module.exports = upload;

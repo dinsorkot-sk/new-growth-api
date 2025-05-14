@@ -25,7 +25,6 @@ const fileFilter = (req, file, cb) => {
 const uploadDocument = multer({ 
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 50 * 1024 * 1024 } // limit ขนาดไฟล์ เช่น 50MB
 });
 
 module.exports = uploadDocument;
