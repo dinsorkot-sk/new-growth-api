@@ -134,7 +134,7 @@ router.get('/get-all-admins', adminController.getAllAdmins);
 
 /**
  * @swagger
- * /api/admin/{id}:
+ * /api/admin/get-admin-by-id/{id}:
  *   get:
  *     summary: Get admin by id
  *     tags: [Admin]
@@ -155,7 +155,7 @@ router.get('/get-admin-by-id/:id', adminController.getAdminById);
 
 /**
  * @swagger
- * /api/admin/{id}:
+ * /api/admin/update-admin-by-id/{id}:
  *   put:
  *     summary: Update admin by id
  *     tags: [Admin]
@@ -189,7 +189,7 @@ router.put('/update-admin-by-id/:id', adminController.updateAdmin);
 
 /**
  * @swagger
- * /api/admin/{id}:
+ * /api/admin/delete-admin-by-id/{id}:
  *   delete:
  *     summary: Delete admin by id
  *     tags: [Admin]
