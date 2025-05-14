@@ -122,7 +122,7 @@ router.post('/reset-password', adminController.resetPassword);
 
 /**
  * @swagger
- * /api/admin:
+ * /api/admin/get-all-admins:
  *   get:
  *     summary: Get all admins
  *     tags: [Admin]
