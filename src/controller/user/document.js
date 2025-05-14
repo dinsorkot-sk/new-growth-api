@@ -148,7 +148,7 @@ exports.getAllDocumentAndVideo = async (req, res) => {
     limit = parseInt(limit);
 
     const whereCondition = {
-      type: { [Op.or]: ['Document', 'Video', ''] },
+      type: { [Op.or]: [type] },
       status: 'show'
     };
 
