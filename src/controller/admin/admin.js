@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt')
 const { Admin } = require('../../models');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const sequelize = require('../../config/sequelize');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'MONPT';
 
