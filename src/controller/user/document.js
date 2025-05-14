@@ -142,7 +142,7 @@ exports.downloadDocument = async (req, res) => {
   //get document and Video file 
   exports.getAllDocumentAndVideo = async (req, res) => {
     try {
-      let { offset = 0, limit = 10, search = '' , type = 'Document'} = req.query;
+      let { offset = 0, limit = 10, search = '' , type = ''} = req.query;
   
       offset = parseInt(offset);
       limit = parseInt(limit);
