@@ -130,7 +130,7 @@ router.post('/reset-password', adminController.resetPassword);
  *       200:
  *         description: List of admins
  */
-router.get('/', adminController.getAllAdmins);
+router.get('/get-all-admins', adminController.getAllAdmins);
 
 /**
  * @swagger
@@ -151,7 +151,7 @@ router.get('/', adminController.getAllAdmins);
  *       404:
  *         description: Admin not found
  */
-router.get('/:id', adminController.getAdminById);
+router.get('/get-admin-by-id/:id', adminController.getAdminById);
 
 /**
  * @swagger
@@ -185,7 +185,7 @@ router.get('/:id', adminController.getAdminById);
  *       404:
  *         description: Admin not found
  */
-router.put('/:id', adminController.updateAdmin);
+router.put('/update-admin-by-id/:id', adminController.updateAdmin);
 
 /**
  * @swagger
@@ -206,7 +206,7 @@ router.put('/:id', adminController.updateAdmin);
  *       404:
  *         description: Admin not found
  */
-router.delete('/:id', adminController.deleteAdmin);
+router.delete('/delete-admin-by-id/:id', adminController.deleteAdmin);
 
 /**
  * @swagger

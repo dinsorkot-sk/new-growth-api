@@ -209,9 +209,7 @@ exports.resetPassword = async (req, res) => {
 // ดึงข้อมูลแอดมินทั้งหมด
 exports.getAllAdmins = async (req, res) => {
   try {
-    const admins = await Admin.findAll({
-      attributes: ['id', 'username', 'email', 'created_at', 'updated_at']
-    });
+    const admins = await Admin.findAll();
     res.status(200).json({ admins });
   } catch (error) {
     console.error('เกิดข้อผิดพลาดในการดึงข้อมูลแอดมิน:', error);
@@ -223,9 +221,7 @@ exports.getAllAdmins = async (req, res) => {
 exports.getAdminById = async (req, res) => {
   try {
     const { id } = req.params;
-    const admin = await Admin.findByPk(id, {
-      attributes: ['id', 'username', 'email', 'created_at', 'updated_at']
-    });
+    const admin = await Admin.findByPk(id);
     if (!admin) {
       return res.status(404).json({ error: 'ไม่พบแอดมิน' });
     }
@@ -252,13 +248,15 @@ exports.updateAdmin = async (req, res) => {
       admin.password_hash = await bcrypt.hash(password, saltRounds);
     }
     await admin.save();
-    res.status(200).json({ message: 'อัปเดตข้อมูลแอดมินสำเร็จ', admin: {
-      id: admin.id,
-      username: admin.username,
-      email: admin.email,
-      created_at: admin.created_at,
-      updated_at: admin.updated_at
-    }});
+    res.status(200).json({
+      message: 'อัปเดตข้อมูลแอดมินสำเร็จ', admin: {
+        id: admin.id,
+        username: admin.username,
+        email: admin.email,
+        created_at: admin.created_at,
+        updated_at: admin.updated_at
+      }
+    });
   } catch (error) {
     console.error('เกิดข้อผิดพลาดในการอัปเดตแอดมิน:', error);
     res.status(500).json({ error: 'Internal server error' });
