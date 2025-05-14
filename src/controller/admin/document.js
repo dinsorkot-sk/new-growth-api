@@ -17,10 +17,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 50 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    cb(null, true); // อนุญาตทุก mimetype
-  }
 });
 
 exports.uploadDocument = upload.single('document_file');
