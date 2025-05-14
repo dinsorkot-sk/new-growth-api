@@ -13,11 +13,6 @@ module.exports = (sequelize, DataTypes) => {
     deleted_at: DataTypes.DATE
   }, {
     tableName: 'admins',
-    timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
-    paranoid: true,
-    deletedAt: 'deleted_at'
   });
 
   return Admin;
