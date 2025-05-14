@@ -18,9 +18,26 @@ exports.createAdmin = async (req, res) => {
       return res.status(400).json({ error: 'กรุณาระบุ username password และ email' });
     }
 
-    const existing = await Admin.findOne({ where: { username, deleted_at: null } });
-    if (existing) {
+    const existing = await Admin.findOne({ where: { username } });
+
+    if (existing && existing.deleted_at === null) {
+      // มี username นี้อยู่แล้วและยังไม่ถูกลบ
       return res.status(409).json({ error: 'มีชื่อผู้ใช้นี้อยู่แล้ว' });
+    } else if (existing && existing.deleted_at !== null) {
+      // มี username นี้แต่ถูกลบแบบ soft delete → restore
+      existing.deleted_at = null;
+      existing.password_hash = await bcrypt.hash(password, 10);
+      existing.email = email;
+      await existing.save();
+      return res.status(200).json({
+        message: 'กู้คืนแอดมินและอัปเดตข้อมูลสำเร็จ',
+        admin: {
+          id: existing.id,
+          username: existing.username,
+          email: existing.email,
+          created_at: existing.created_at
+        }
+      });
     }
 
     const saltRounds = 10;
@@ -265,15 +282,18 @@ exports.updateAdmin = async (req, res) => {
 
 // ลบแอดมิน
 exports.deleteAdmin = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { id } = req.params;
     const admin = await Admin.findByPk(id);
     if (!admin) {
       return res.status(404).json({ error: 'ไม่พบแอดมิน' });
     }
-    await admin.destroy();
+    await admin.destroy({ transaction: t });
+    await t.commit();
     res.status(200).json({ message: 'ลบแอดมินสำเร็จ' });
   } catch (error) {
+    await t.rollback();
     console.error('เกิดข้อผิดพลาดในการลบแอดมิน:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
