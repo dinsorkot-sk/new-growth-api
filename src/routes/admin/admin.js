@@ -122,6 +122,94 @@ router.post('/reset-password', adminController.resetPassword);
 
 /**
  * @swagger
+ * /api/admin:
+ *   get:
+ *     summary: Get all admins
+ *     tags: [Admin]
+ *     responses:
+ *       200:
+ *         description: List of admins
+ */
+router.get('/', adminController.getAllAdmins);
+
+/**
+ * @swagger
+ * /api/admin/{id}:
+ *   get:
+ *     summary: Get admin by id
+ *     tags: [Admin]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Admin ID
+ *     responses:
+ *       200:
+ *         description: Admin data
+ *       404:
+ *         description: Admin not found
+ */
+router.get('/:id', adminController.getAdminById);
+
+/**
+ * @swagger
+ * /api/admin/{id}:
+ *   put:
+ *     summary: Update admin by id
+ *     tags: [Admin]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Admin ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Admin updated
+ *       404:
+ *         description: Admin not found
+ */
+router.put('/:id', adminController.updateAdmin);
+
+/**
+ * @swagger
+ * /api/admin/{id}:
+ *   delete:
+ *     summary: Delete admin by id
+ *     tags: [Admin]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Admin ID
+ *     responses:
+ *       200:
+ *         description: Admin deleted
+ *       404:
+ *         description: Admin not found
+ */
+router.delete('/:id', adminController.deleteAdmin);
+
+/**
+ * @swagger
  * components:
  *   schemas:
  *     SendOtpInput:

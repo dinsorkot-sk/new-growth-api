@@ -206,4 +206,79 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
+// ดึงข้อมูลแอดมินทั้งหมด
+exports.getAllAdmins = async (req, res) => {
+  try {
+    const admins = await Admin.findAll({
+      attributes: ['id', 'username', 'email', 'created_at', 'updated_at']
+    });
+    res.status(200).json({ admins });
+  } catch (error) {
+    console.error('เกิดข้อผิดพลาดในการดึงข้อมูลแอดมิน:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ดึงข้อมูลแอดมินตาม id
+exports.getAdminById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const admin = await Admin.findByPk(id, {
+      attributes: ['id', 'username', 'email', 'created_at', 'updated_at']
+    });
+    if (!admin) {
+      return res.status(404).json({ error: 'ไม่พบแอดมิน' });
+    }
+    res.status(200).json({ admin });
+  } catch (error) {
+    console.error('เกิดข้อผิดพลาดในการดึงข้อมูลแอดมิน:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// อัปเดตข้อมูลแอดมิน
+exports.updateAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, email, password } = req.body;
+    const admin = await Admin.findByPk(id);
+    if (!admin) {
+      return res.status(404).json({ error: 'ไม่พบแอดมิน' });
+    }
+    if (username) admin.username = username;
+    if (email) admin.email = email;
+    if (password) {
+      const saltRounds = 10;
+      admin.password_hash = await bcrypt.hash(password, saltRounds);
+    }
+    await admin.save();
+    res.status(200).json({ message: 'อัปเดตข้อมูลแอดมินสำเร็จ', admin: {
+      id: admin.id,
+      username: admin.username,
+      email: admin.email,
+      created_at: admin.created_at,
+      updated_at: admin.updated_at
+    }});
+  } catch (error) {
+    console.error('เกิดข้อผิดพลาดในการอัปเดตแอดมิน:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ลบแอดมิน
+exports.deleteAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const admin = await Admin.findByPk(id);
+    if (!admin) {
+      return res.status(404).json({ error: 'ไม่พบแอดมิน' });
+    }
+    await admin.destroy();
+    res.status(200).json({ message: 'ลบแอดมินสำเร็จ' });
+  } catch (error) {
+    console.error('เกิดข้อผิดพลาดในการลบแอดมิน:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 
