@@ -7,14 +7,15 @@ const fs = require('fs')
 //get all
 exports.getAllDocumentResource = async (req, res) => {
   try {
-    let { offset = 0, limit = 10, search = '' } = req.query;
+    let { offset = 0, limit = 10, search = '', type = 'Document' } = req.query;
 
     offset = parseInt(offset);
     limit = parseInt(limit);
 
-    const whereCondition = {
-      type: 'Document',
-    };
+    const whereCondition = {};
+    if (type) {
+      whereCondition.type = type;
+    }
 
     if (search) {
       whereCondition.title = { [Op.like]: `%${search}%` };
@@ -63,11 +64,12 @@ exports.getAllDocumentResource = async (req, res) => {
 exports.getDocumentResourceById = async (req, res) => {
   try {
     const { id } = req.params;
+    const { type = 'Document' } = req.query;
 
     const document = await Resource.findOne({
       where: {
         id: id,
-        type: 'Document'
+        type: type
       },
       include: [
         {
