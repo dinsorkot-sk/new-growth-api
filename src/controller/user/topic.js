@@ -39,7 +39,7 @@ const handleAnswers = async (answers, topicId, t) => {
 // ---------- Controllers ---------- //
 exports.getAllTopics = async (req, res) => {
     try {
-        const { offset = 0, limit = 10, search = '' } = req.query;
+        const { offset = 0, limit = 10, search = '', order = 'DESC' } = req.query;
         const parsedOffset = parseInt(offset);
         const parsedLimit = parseInt(limit);
 
@@ -58,7 +58,7 @@ exports.getAllTopics = async (req, res) => {
             where,
             offset: parsedOffset,
             limit: parsedLimit,
-            order: [['created_at', 'DESC']],
+            order: [['created_at', order]],
             include: [{ model: TopicAnswer, as: 'answer' }]
         });
 

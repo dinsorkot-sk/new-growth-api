@@ -59,6 +59,12 @@ router.post('/', topicController.createTopic);
  *         name: search
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [ASC, DESC]
+ *           default: DESC
  *     responses:
  *       200:
  *         description: Paginated topics list
