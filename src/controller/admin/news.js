@@ -8,7 +8,7 @@ const saveImage = async (file, t) => {
   const imagePath = path.join('upload', path.basename(file.path)); // แปลงให้ได้ path ที่ต้องการ
   return await Image.create({
     ref_type: 'news',
-    image_path: imagePath.replace(/\\/g, '/'), // เผื่อกรณีรันบน Windows
+    image_path: imagePath, // เผื่อกรณีรันบน Windows
     created_at: new Date(),
     updated_at: new Date()
   }, { transaction: t });

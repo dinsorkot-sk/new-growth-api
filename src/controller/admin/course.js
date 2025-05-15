@@ -6,10 +6,11 @@ const { Op } = require('sequelize');
 
 // Helper functions
 const saveImage = async (file, refId = null, t) => {
+  const imagePath = path.join('upload', path.basename(file.path));
   return Image.create({
     ref_type: 'course',
     ref_id: refId,
-    image_path: `/upload/${file.filename}`,
+    image_path: imagePath,
     created_at: new Date(),
     updated_at: new Date()
   }, { transaction: t });

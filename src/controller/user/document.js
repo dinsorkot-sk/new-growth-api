@@ -169,9 +169,6 @@ exports.getAllDocumentAndVideo = async (req, res) => {
         {
           model: ResourceFile,
           as: 'files',
-          where: { is_downloadable: true },
-          required: false,
-          attributes: ['id', 'file_path', 'file_type', 'is_downloadable']
         }
       ],
       order: [['created_at', 'DESC']],
