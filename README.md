@@ -70,7 +70,7 @@ express-api/
 ## 🛠 Setup and Installation
 ### 1️⃣ Clone the Repository
 ```sh
-git clone https://github.com/dinsorkot-sk/express-api.git
+git clone https://github.com/dinsorkot-sk/new-growth-api.git
 cd express-api
 ```
 
