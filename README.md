@@ -1,17 +1,57 @@
-# Express.js API with MySQL and Sequelize
+# New Growth API
 
-## 📌 Overview
-This project is a RESTful API built with **Express.js**, connected to a **MySQL** database using **Sequelize ORM**. It follows the **MVC (Model-View-Controller)** pattern and supports **database migrations**.
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)]
 
-## 🚀 Features
-- Express.js for building the API
-- Sequelize ORM for database management
-- MySQL as the database
-- Environment variables with dotenv
-- Database migrations and seeders
-- MVC architecture
+A RESTful API for the New Growth platform built with Express.js, MySQL, and Sequelize (MVC architecture).  
+Supports user authentication, file uploads, video streaming, and comes with Swagger documentation.
 
-## 🏗 Project Structure
+---
+
+## Table of Contents
+
+- [Features](#features)  
+- [Tech Stack](#tech-stack)  
+- [Project Structure](#project-structure)  
+- [Getting Started](#getting-started)  
+  - [Prerequisites](#prerequisites)  
+  - [Installation](#installation)  
+  - [Environment Variables](#environment-variables)  
+  - [Database Setup](#database-setup)  
+  - [Running the Application](#running-the-application)  
+  - [Windows PowerShell Tasks](#windows-powershell-tasks)  
+- [API Documentation](#api-documentation)  
+- [Available Scripts](#available-scripts)  
+- [Contributing](#contributing)  
+- [License](#license)  
+
+---
+
+## Features
+
+- User registration, login, JWT-based authentication  
+- Role-based access: **admin** and **user**  
+- CRUD operations for users  
+- File upload/download (`/upload`)  
+- Video streaming (`/video`)  
+- Database migrations & seeders with Sequelize CLI  
+- Swagger (OpenAPI) interactive docs  
+- MVC directory structure  
+
+---
+
+## Tech Stack
+
+- **Node.js** & **Express.js**  
+- **MySQL** database  
+- **Sequelize** ORM  
+- **dotenv** for config  
+- **nodemon** for development  
+- **Swagger UI** for docs  
+
+---
+
+## Project Structure
+
 ```
 express-api/
 │── src/
