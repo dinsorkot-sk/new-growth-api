@@ -349,7 +349,8 @@ exports.getAllNews = async (req, res) => {
           as: 'resources',
           include: [
             { model: ResourceFile, as: 'files' }
-          ]
+          ],
+          required: false
         },
         {
           model: TagAssignment,
@@ -360,12 +361,13 @@ exports.getAllNews = async (req, res) => {
             model: Tag,
             as: 'tag',
             attributes: ['id', 'name'],
-            where: {name: {[Op.like]: `%${category}%`}}
+            where: {name: {[Op.like]: `%${category}%`}},
+            required: false
           }]
         }
       ]
     });
-
+    console.log(newsList)
     const result = newsList.map(n => ({
       ...n.toJSON(),
     }));
