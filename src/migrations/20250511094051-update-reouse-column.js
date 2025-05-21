@@ -21,9 +21,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    // Remove index first
-    await queryInterface.removeIndex('resources', 'resources_news_id_idx');
-    
     // Then remove the column
     await queryInterface.removeColumn('resources', 'news_id');
   }
