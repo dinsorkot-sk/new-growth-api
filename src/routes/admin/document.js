@@ -40,6 +40,8 @@ const documentController = require('../../controller/admin/document')
  *                 type: string
  *                 enum: [Document, Video]
  *                 default: Document
+ *               is_downloadable:
+ *                 type: boolean
  *     responses:
  *       201:
  *         description: Document created successfully
