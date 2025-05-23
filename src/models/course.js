@@ -28,6 +28,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true
     },
+    view_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
     created_at: DataTypes.DATE,
     updated_at: DataTypes.DATE,
     deleted_at: DataTypes.DATE,

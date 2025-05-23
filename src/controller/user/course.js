@@ -100,7 +100,6 @@ exports.updateView = async (req, res) => {
     await course.save({ transaction: t });
 
     const fullCourse = await Course.findByPk(course.id, {
-      attributes: ['id', 'title', 'content', 'published_date', 'short_description', 'view_count'],
       include: [
         {
           model: Image,
