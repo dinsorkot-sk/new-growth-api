@@ -106,19 +106,6 @@ exports.updateView = async (req, res) => {
           model: Image,
           as: 'image',
           attributes: ['id', 'image_path']
-        },
-        {
-          model: TagAssignment,
-          as: 'tagAssignments',
-          required: false,
-          where: { taggable_type: 'course' },
-          include: [
-            {
-              model: Tag,
-              as: 'tag',
-              attributes: ['id', 'name']
-            }
-          ]
         }
       ],
       transaction: t
