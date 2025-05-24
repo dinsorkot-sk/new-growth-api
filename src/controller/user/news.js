@@ -150,6 +150,13 @@ exports.getNewsById = async (req, res) => {
           attributes: ['id', 'image_path']
         },
         {
+          model: Resource,
+          as: 'resources',
+          include: [
+            { model: ResourceFile, as: 'files' }
+          ]
+        },
+        {
           model: TagAssignment,
           as: 'tagAssignments',
           required: false,
