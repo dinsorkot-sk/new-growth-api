@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { sequelize, News, Image, Tag, TagAssignment, Resource } = require('../../models');
+const { sequelize, News, Image, Tag, TagAssignment, Resource ,ResourceFile } = require('../../models');
 const path = require('path');
 const fs = require('fs');
 
