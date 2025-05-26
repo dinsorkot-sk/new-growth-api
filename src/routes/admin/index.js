@@ -10,6 +10,7 @@ const review = require('./review')
 const answer = require('./answer')
 const dashboard = require('./dashboard')
 const admission = require('./admission')
+const board = require('./board')
 
 module.exports = {
   event,
@@ -23,5 +24,6 @@ module.exports = {
   review,
   answer,
   dashboard,
-  admission
+  admission,
+  board
 }

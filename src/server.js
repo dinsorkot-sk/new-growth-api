@@ -46,7 +46,8 @@ const {
     review: adminReview,
     answer: adminAnswer,
     dashboard: adminDashboard,
-    admission: adminAdmission
+    admission: adminAdmission,
+    board: adminBoard
 } = require('./routes/admin');
 
 // Initialize express app
@@ -57,7 +58,18 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use(helmet());
+app.use(
+    helmet({
+    contentSecurityPolicy: {
+      directives: {
+        // อนุญาตให้ iframe มาจากตัวเอง และจาก bunditpunmai-mju.com
+        frameAncestors: ["'self'", "http://bunditpunmai-mju.com"],
+        // ถ้าไม่ใช้ CSP อย่างอื่น อาจกำหนด default-src ด้วย
+        defaultSrc: ["'self'"]
+      }
+    }
+  })
+);
 app.use(morgan('dev'));
 
 // Custom middleware
@@ -85,8 +97,10 @@ app.use((req, res, next) => {
 // Static files serving
 const uploadDir = path.join(__dirname, '../upload');
 const videoDir = path.join(__dirname, '../video');
+const DocumentDir = path.join(__dirname, '../documents');
 app.use('/upload', express.static(uploadDir), serveIndex(uploadDir, { icons: true }));
 app.use('/video', express.static(videoDir), serveIndex(videoDir, { icons: true }));
+app.use('/documents', express.static(DocumentDir), serveIndex(DocumentDir, { icons: true }));
 
 // API Routes
 app.use('/api/event', userEvent);
@@ -116,7 +130,7 @@ app.use('/api/admin/image', authMiddleware, adminImage);
 app.use('/api/admin/review', authMiddleware, adminReview);
 app.use('/api/admin/answer', authMiddleware, adminAnswer);
 app.use('/api/admin/admission', authMiddleware, adminAdmission);
-
+app.use('/api/admin/board', authMiddleware, adminBoard);
 // Error handling middleware
 app.use(errorHandler);
 

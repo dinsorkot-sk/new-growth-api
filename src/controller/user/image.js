@@ -56,7 +56,6 @@ exports.getAllImages = async (req, res) => {
       const where = {
         deleted_at: null,
         [Op.or]: [
-          { image_path: { [Op.like]: `%${search}%` } },
           { ref_type: { [Op.like]: `%${ref_type}%` } },
         ]
       };
