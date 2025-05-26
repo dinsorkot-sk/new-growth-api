@@ -127,7 +127,55 @@ const upload = require('../../config/multer');
  *       500:
  *         description: Internal server error
  */
+
+/**
+ * @swagger
+ * /api/admin/board/media:
+ *   post:
+ *     tags: [Admin Board]
+ *     summary: Upload one or multiple media files (images or videos)
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               media:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Media files (image or video)
+ *               description:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Description for each media file (order matches files)
+ *     responses:
+ *       201:
+ *         description: Media uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 media:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: No files were uploaded
+ *       500:
+ *         description: Internal server error
+ */
 router.post('/', upload.array('image'), boardController.createImages);
+
+router.post('/media', upload.array('media', 10), boardController.createMedia);
 
 router.delete('/:id', boardController.deleteImage);
 

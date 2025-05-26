@@ -3,7 +3,9 @@ const path = require('path');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    if (file.fieldname === 'video') {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const isVideo = ['.mp4', '.mov', '.avi', '.wmv', '.mkv', '.webm'].includes(ext);
+    if (isVideo) {
       cb(null, 'video');
     } else {
       cb(null, 'upload');
