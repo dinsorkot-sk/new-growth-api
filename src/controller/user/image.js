@@ -15,6 +15,7 @@ exports.getAllImages = async (req, res) => {
       // ดึงรูปภาพที่ ref_type = 'vibe'
       const imageCount = await Image.count();
       const images = await Image.findAll({
+        where: { ref_type: { [Op.ne]: 'board' } },  
         order: [['created_at', 'DESC']],
         offset,
         limit
