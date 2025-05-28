@@ -66,6 +66,12 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'CASCADE',
       onUpdate: 'CASCADE',
     });
+
+    News.hasMany(models.Image, {
+      foreignKey: 'ref_id',
+      as: 'images',
+      scope: { ref_type: 'news' }
+    });
   };
 
   return News;

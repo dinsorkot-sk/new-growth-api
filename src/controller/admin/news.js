@@ -133,11 +133,11 @@ function parseDescriptions(input) {
   if (!input) return [];
   if (Array.isArray(input)) return input;
   try {
-    // พยายาม parse เป็น JSON ก่อน
+    // Try to parse as JSON first
     const arr = JSON.parse(input);
     if (Array.isArray(arr)) return arr;
   } catch (e) {
-    // ถ้า parse ไม่ได้ ให้แยกด้วย comma
+    // If parse fails, split by comma
     return input.split(',').map(s => s.trim()).filter(Boolean);
   }
   return [];
@@ -162,6 +162,12 @@ exports.createNews = async (req, res) => {
       updated_at: new Date()
     }, { transaction: t });
 
+    if (images.length > 0) {
+      await Promise.all(images.map(async (image) => {
+        image.ref_id = news.id;
+        await image.save({ transaction: t });
+      }));
+    }
     // Handle video uploads
     const videoResources = await handleVideos(req.files, news.id, videoDescriptions, t);
     if (videoResources.length > 0) {
@@ -175,8 +181,13 @@ exports.createNews = async (req, res) => {
       include: [
         {
           model: Image,
-          as: 'image',
-          attributes: ['id', 'image_path']
+          as: 'image', // รูปหลัก (img_id)
+          attributes: ['id', 'image_path', 'description']
+        },
+        {
+          model: Image,
+          as: 'images', // รูปทั้งหมดที่ ref_id = news.id
+          attributes: ['id', 'image_path', 'description']
         },
         {
           model: Resource,
@@ -296,6 +307,11 @@ exports.updateNews = async (req, res) => {
           attributes: ['id', 'image_path']
         },
         {
+          model: Image,
+          as: 'images', // รูปทั้งหมดที่ ref_id = news.id
+          attributes: ['id', 'image_path', 'description']
+        },
+        {
           model: Resource,
           as: 'resources',
           include: [
@@ -377,6 +393,11 @@ exports.getAllNews = async (req, res) => {
           required: false
         },
         {
+          model: Image,
+          as: 'images', // รูปทั้งหมดที่ ref_id = news.id
+          attributes: ['id', 'image_path', 'description']
+        },
+        {
           model: Resource,
           as: 'resources',
           include: [
@@ -429,6 +450,11 @@ exports.getNewsById = async (req, res) => {
           attributes: ['id', 'image_path']
         },
         {
+          model: Image,
+          as: 'images', // รูปทั้งหมดที่ ref_id = news.id
+          attributes: ['id', 'image_path', 'description']
+        },
+        {
           model: Resource,
           as: 'resources',
           include: [
@@ -479,6 +505,11 @@ exports.updateView = async (req, res) => {
           model: Image,
           as: 'image',
           attributes: ['id', 'image_path']
+        },
+        {
+          model: Image,
+          as: 'images', // รูปทั้งหมดที่ ref_id = news.id
+          attributes: ['id', 'image_path', 'description']
         },
         {
           model: TagAssignment,

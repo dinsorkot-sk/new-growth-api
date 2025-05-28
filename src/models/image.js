@@ -26,6 +26,13 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: false,
       underscored: true
     });
+
+    Image.associate = (models) => {
+      Image.belongsTo(models.News, {
+        foreignKey: 'ref_id',
+        as: 'news'
+      });
+    };
   
     return Image;
   };
