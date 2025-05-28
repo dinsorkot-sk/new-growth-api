@@ -187,7 +187,9 @@ exports.createNews = async (req, res) => {
         {
           model: Image,
           as: 'images', // รูปทั้งหมดที่ ref_id = news.id
-          attributes: ['id', 'image_path', 'description']
+          attributes: ['id', 'image_path', 'description'],
+          separate: true,
+          order: [['id', 'ASC']]
         },
         {
           model: Resource,
@@ -336,8 +338,10 @@ exports.updateNews = async (req, res) => {
         },
         {
           model: Image,
-          as: 'images', // รูปทั้งหมดที่ ref_id = news.id
-          attributes: ['id', 'image_path', 'description']
+          as: 'images',
+          attributes: ['id', 'image_path', 'description'],
+          separate: true,
+          order: [['id', 'ASC']]
         },
         {
           model: Resource,
@@ -422,10 +426,10 @@ exports.getAllNews = async (req, res) => {
         },
         {
           model: Image,
-          as: 'images', // รูปทั้งหมดที่ ref_id = news.id
+          as: 'images',
           attributes: ['id', 'image_path', 'description'],
-          order: [['id', 'ASC']],
-          required: false
+          separate: true,
+          order: [['id', 'ASC']]
         },
         {
           model: Resource,
@@ -482,7 +486,9 @@ exports.getNewsById = async (req, res) => {
         {
           model: Image,
           as: 'images', // รูปทั้งหมดที่ ref_id = news.id
-          attributes: ['id', 'image_path', 'description']
+          attributes: ['id', 'image_path', 'description'],
+          separate: true,
+          order: [['id', 'ASC']]
         },
         {
           model: Resource,
@@ -539,7 +545,9 @@ exports.updateView = async (req, res) => {
         {
           model: Image,
           as: 'images', // รูปทั้งหมดที่ ref_id = news.id
-          attributes: ['id', 'image_path', 'description']
+          attributes: ['id', 'image_path', 'description'],
+          separate: true,
+          order: [['id', 'ASC']]
         },
         {
           model: TagAssignment,
