@@ -111,6 +111,13 @@ exports.getAllNews = async (req, res) => {
           required: false
         },
         {
+          model: Image,
+          as: 'images',
+          attributes: ['id', 'image_path', 'description'],
+          separate: true,
+          order: [['id', 'ASC']]
+        },
+        {
           model: TagAssignment,
           as: 'tagAssignments',
           required: false,
@@ -148,6 +155,13 @@ exports.getNewsById = async (req, res) => {
           model: Image,
           as: 'image',
           attributes: ['id', 'image_path']
+        },
+        {
+          model: Image,
+          as: 'images',
+          attributes: ['id', 'image_path', 'description'],
+          separate: true,
+          order: [['id', 'ASC']]
         },
         {
           model: Resource,
@@ -201,6 +215,13 @@ exports.updateView = async (req, res) => {
           model: Image,
           as: 'image',
           attributes: ['id', 'image_path']
+        },
+        {
+          model: Image,
+          as: 'images',
+          attributes: ['id', 'image_path', 'description'],
+          separate: true,
+          order: [['id', 'ASC']]
         },
         {
           model: TagAssignment,
