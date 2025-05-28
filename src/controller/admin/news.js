@@ -4,14 +4,22 @@ const path = require('path');
 const fs = require('fs');
 
 // ---------- Helper Functions ---------- //
-const saveImage = async (file, t) => {
-  const imagePath = path.join('upload', path.basename(file.path)); // แปลงให้ได้ path ที่ต้องการ
-  return await Image.create({
-    ref_type: 'news',
-    image_path: imagePath, // เผื่อกรณีรันบน Windows
-    created_at: new Date(),
-    updated_at: new Date()
-  }, { transaction: t });
+const saveImages = async (files, descriptions = [], t) => {
+  const images = [];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const desc = descriptions[i] || '';
+    const imagePath = path.join('upload', path.basename(file.path));
+    const img = await Image.create({
+      ref_type: 'news',
+      image_path: imagePath,
+      description: desc,
+      created_at: new Date(),
+      updated_at: new Date()
+    }, { transaction: t });
+    images.push(img);
+  }
+  return images;
 };
 
 const removeImage = async (imageId, t) => {
@@ -23,21 +31,22 @@ const removeImage = async (imageId, t) => {
   }
 };
 
-const handleVideos = async (files, newsId, t) => {
+const handleVideos = async (files, newsId, descriptions = [], t) => {
   if (!files || !files.video) return [];
-
   const videoResources = [];
-  for (const videoFile of files.video) {
+  for (let i = 0; i < files.video.length; i++) {
+    const videoFile = files.video[i];
+    const desc = descriptions[i] || '';
     const resource = await Resource.create({
       title: `Video for news ${newsId}`,
-      description: '',
+      description: desc,
       type: 'video',
       duration: null,
       author: 'System',
       status: 'show',
       published_date: new Date(),
+      news_id: newsId,
     }, { transaction: t });
-
     const fileExtension = path.extname(videoFile.originalname).toLowerCase().replace('.', '');
     await ResourceFile.create({
       resource_id: resource.id,
@@ -45,7 +54,6 @@ const handleVideos = async (files, newsId, t) => {
       file_path: videoFile.path.replace(/\\/g, '/'),
       is_downloadable: false
     }, { transaction: t });
-
     videoResources.push(resource);
   }
   return videoResources;
@@ -126,18 +134,22 @@ exports.createNews = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { title, content, published_date, status, tag, short_description } = req.body;
-    let img = req.files?.image?.[0] ? await saveImage(req.files.image[0], t) : null;
+    const imageDescriptions = req.body.image_description ? JSON.parse(req.body.image_description) : [];
+    const videoDescriptions = req.body.video_description ? JSON.parse(req.body.video_description) : [];
+
+    let images = req.files?.image ? await saveImages(req.files.image, imageDescriptions, t) : [];
+    const img_id = images[0]?.id || null;
 
     const news = await News.create({
       title, content, published_date, status,
       short_description,
-      img_id: img?.id,
+      img_id,
       created_at: new Date(),
       updated_at: new Date()
     }, { transaction: t });
 
     // Handle video uploads
-    const videoResources = await handleVideos(req.files, news.id, t);
+    const videoResources = await handleVideos(req.files, news.id, videoDescriptions, t);
     if (videoResources.length > 0) {
       await news.setResources(videoResources, { transaction: t });
     }
@@ -191,16 +203,22 @@ exports.updateNews = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content, published_date, status, tag, short_description } = req.body;
+    const imageDescriptions = req.body.image_description ? JSON.parse(req.body.image_description) : [];
+    const videoDescriptions = req.body.video_description ? JSON.parse(req.body.video_description) : [];
 
     const news = await News.findByPk(id);
     if (!news) return res.status(404).json({ message: 'News not found' });
 
     Object.assign(news, { title, content, published_date, status, short_description });
 
-    if (req.files?.image?.[0]) {
+    if (req.files?.image) {
       await removeImage(news.img_id, t);
-      const newImg = await saveImage(req.files.image[0], t);
-      news.img_id = newImg.id;
+      const newImages = await saveImages(req.files.image, imageDescriptions, t);
+      news.img_id = newImages[0]?.id || news.img_id;
+      for (const img of newImages) {
+        img.ref_id = news.id;
+        await img.save({ transaction: t });
+      }
     }
 
     // Handle video updates
@@ -245,7 +263,7 @@ exports.updateNews = async (req, res) => {
     // เพิ่ม Resource ใหม่จากไฟล์ที่อัปโหลดมา
     let newVideoResources = [];
     if (req.files?.video) {
-      newVideoResources = await handleVideos(req.files, news.id, t);
+      newVideoResources = await handleVideos(req.files, news.id, videoDescriptions, t);
     }
 
     // setResources ใหม่ (รวมของเดิมที่ keep + ของใหม่)

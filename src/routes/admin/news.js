@@ -81,7 +81,7 @@ const upload = require("../../config/multer");
  *                   type: string
  */
 router.post('/', upload.fields([
-    { name: 'image', maxCount: 1 },
+    { name: 'image', maxCount: 5 },
     { name: 'video', maxCount: 5 }
 ]), newsController.createNews);
 

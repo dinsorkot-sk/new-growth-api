@@ -171,7 +171,7 @@ exports.getAllDocumentAndVideo = async (req, res) => {
           as: 'files',
         }
       ],
-      order: [['created_at', 'DESC']],
+      order: [['id', 'DESC']],
       offset,
       limit
     });
