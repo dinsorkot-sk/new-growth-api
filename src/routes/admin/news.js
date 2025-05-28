@@ -30,8 +30,11 @@ const upload = require("../../config/multer");
  *               - published_date
  *             properties:
  *               image:
- *                 type: string
- *                 format: binary
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Multiple image files can be uploaded
  *               video:
  *                 type: array
  *                 items:
