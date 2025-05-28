@@ -129,13 +129,27 @@ const generatePaginationLinks = (req, offset, limit, totalCount, search = '') =>
   };
 };
 
+function parseDescriptions(input) {
+  if (!input) return [];
+  if (Array.isArray(input)) return input;
+  try {
+    // พยายาม parse เป็น JSON ก่อน
+    const arr = JSON.parse(input);
+    if (Array.isArray(arr)) return arr;
+  } catch (e) {
+    // ถ้า parse ไม่ได้ ให้แยกด้วย comma
+    return input.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
 // ---------- Controllers ---------- //
 exports.createNews = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { title, content, published_date, status, tag, short_description } = req.body;
-    const imageDescriptions = req.body.image_description ? JSON.parse(req.body.image_description) : [];
-    const videoDescriptions = req.body.video_description ? JSON.parse(req.body.video_description) : [];
+    const imageDescriptions = parseDescriptions(req.body.image_description);
+    const videoDescriptions = parseDescriptions(req.body.video_description);
 
     let images = req.files?.image ? await saveImages(req.files.image, imageDescriptions, t) : [];
     const img_id = images[0]?.id || null;
@@ -203,8 +217,8 @@ exports.updateNews = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content, published_date, status, tag, short_description } = req.body;
-    const imageDescriptions = req.body.image_description ? JSON.parse(req.body.image_description) : [];
-    const videoDescriptions = req.body.video_description ? JSON.parse(req.body.video_description) : [];
+    const imageDescriptions = parseDescriptions(req.body.image_description);
+    const videoDescriptions = parseDescriptions(req.body.video_description);
 
     const news = await News.findByPk(id);
     if (!news) return res.status(404).json({ message: 'News not found' });
