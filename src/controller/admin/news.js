@@ -236,15 +236,43 @@ exports.updateNews = async (req, res) => {
 
     Object.assign(news, { title, content, published_date, status, short_description });
 
+    // Handle image updates (แบบเดียวกับ video)
+    let keepImageIds = [];
+    if (req.body.keep_image_ids) {
+      try {
+        keepImageIds = JSON.parse(req.body.keep_image_ids);
+      } catch {
+        keepImageIds = [];
+      }
+    }
+
+    // หา images ทั้งหมดที่ ref_id = news.id
+    const existingImages = await Image.findAll({
+      where: { ref_id: news.id, ref_type: 'news' }
+    });
+
+    // ลบ images ที่ไม่ได้อยู่ใน keepImageIds
+    for (const image of existingImages) {
+      if (!keepImageIds.includes(image.id)) {
+        await removeImage(image.id, t);
+      }
+    }
+
+    // เพิ่ม images ใหม่จากไฟล์ที่อัปโหลดมา
+    let newImages = [];
     if (req.files?.image) {
-      await removeImage(news.img_id, t);
-      const newImages = await saveImages(req.files.image, imageDescriptions, t);
-      news.img_id = newImages[0]?.id || news.img_id;
+      newImages = await saveImages(req.files.image, imageDescriptions, t);
       for (const img of newImages) {
         img.ref_id = news.id;
         await img.save({ transaction: t });
       }
     }
+
+    // *** ต้องอัปเดต img_id หลังจากลบและเพิ่มรูปเสร็จ ***
+    const remainImages = await Image.findAll({
+      where: { ref_id: news.id, ref_type: 'news' }
+    });
+    news.img_id = remainImages[0]?.id || null;
 
     // Handle video updates
     let keepVideoIds = [];
@@ -395,7 +423,9 @@ exports.getAllNews = async (req, res) => {
         {
           model: Image,
           as: 'images', // รูปทั้งหมดที่ ref_id = news.id
-          attributes: ['id', 'image_path', 'description']
+          attributes: ['id', 'image_path', 'description'],
+          order: [['id', 'ASC']],
+          required: false
         },
         {
           model: Resource,

@@ -210,14 +210,27 @@ router.get('/:id', newsController.getNewsById);
  *             type: object
  *             properties:
  *               image:
- *                 type: string
- *                 format: binary
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Multiple image files can be uploaded
+ *               image_description:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Description for each image
  *               video:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: binary
  *                 description: Multiple video files can be uploaded
+ *               video_description:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Description for each video
  *               title:
  *                 type: string
  *               content:
@@ -233,7 +246,10 @@ router.get('/:id', newsController.getNewsById);
  *               tag:
  *                 type: string
  *                 description: JSON array of tags (e.g., ["breaking","sport"])
- *               keepVideoIds:
+ *               keep_image_ids:
+ *                 type: string
+ *                 description: JSON array of image ids (e.g., ["1","2"])
+ *               keep_video_ids:
  *                 type: string
  *                 description: JSON array of video ids (e.g., ["1","2"])
  *     responses:
@@ -255,7 +271,7 @@ router.get('/:id', newsController.getNewsById);
  *         description: Internal server error
  */
 router.put('/:id', upload.fields([
-    { name: 'image', maxCount: 1 },
+    { name: 'image', maxCount: 5 },
     { name: 'video', maxCount: 5 }
 ]), newsController.updateNews);
 
