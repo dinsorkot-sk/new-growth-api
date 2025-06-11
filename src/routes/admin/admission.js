@@ -108,7 +108,6 @@ router.delete('/:id', controller.delete);
  *       required:
  *         - title
  *         - startDate
- *         - endDate
  *       properties:
  *         title:
  *           type: string
@@ -118,15 +117,19 @@ router.delete('/:id', controller.delete);
  *         endDate:
  *           type: string
  *           format: date-time
+ *           nullable: true
  *         selectionStartDate:
  *           type: string
  *           format: date-time
+ *           nullable: true
  *         selectionEndDate:
  *           type: string
  *           format: date-time
+ *           nullable: true
  *         trainingStartDate:
  *           type: string
  *           format: date-time
+ *           nullable: true
  *         link_register:
  *           type: string
  *     AdmissionResponse:
