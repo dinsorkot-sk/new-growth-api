@@ -13,8 +13,15 @@ exports.getAllDocumentResource = async (req, res) => {
     limit = parseInt(limit);
 
     const whereCondition = {};
-    if (type) {
-      whereCondition.type = type;
+    if (type === 'other') {
+      whereCondition.type = { 
+        [Op.and]: [
+          { [Op.ne]: 'pdf' },
+          { [Op.ne]: 'video' }
+        ]
+      };
+    } else if (type) {
+      whereCondition.type = { [Op.or]: [type] };
     }
 
     if (search) {
@@ -153,7 +160,14 @@ exports.getAllDocumentAndVideo = async (req, res) => {
       status: 'show'
     };
 
-    if (type) {
+    if (type === 'other') {
+      whereCondition.type = { 
+        [Op.and]: [
+          { [Op.ne]: 'pdf' },
+          { [Op.ne]: 'mp4' }
+        ]
+      };
+    } else if (type) {
       whereCondition.type = { [Op.or]: [type] };
     }
 
