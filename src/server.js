@@ -88,6 +88,14 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
+// app.enable('trust proxy');
+// app.use((req, res, next) => {
+//     if (req.secure) {
+//         return next();
+//     }
+//     return res.redirect(307, 'https://' + req.headers.host + req.url);
+// });
+
 // CORS settings
 app.use((req, res, next) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
@@ -122,7 +130,7 @@ app.use('/api/admin/dashboard', authMiddleware, adminDashboard);
 // Admin protected routes
 app.use('/api/admin/event', authMiddleware, adminEvent);
 app.use('/api/admin/news', authMiddleware, adminNews);
-app.use('/api/admin/topic', authMiddleware, adminTopic);
+app.use('/api/admin/topic', adminTopic);
 app.use('/api/admin/course', authMiddleware, adminCourse);
 app.use('/api/admin/video', authMiddleware, adminVideo);
 app.use('/api/admin/document', authMiddleware, adminDocument);
