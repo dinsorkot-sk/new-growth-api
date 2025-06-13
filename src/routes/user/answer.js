@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const answerController = require('../../controller/user/answer');
+const multer = require('multer');
+const upload = multer();
 
 /**
  * @swagger
@@ -18,9 +20,27 @@ const answerController = require('../../controller/user/answer');
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/AnswerInput'
+ *             type: object
+ *             required:
+ *               - topic_id
+ *               - answer_text
+ *               - answered_by
+ *             properties:
+ *               topic_id:
+ *                 type: integer
+ *                 example: 1
+ *               answer_text:
+ *                 type: string
+ *                 example: "This is a sample answer"
+ *               answered_by:
+ *                 type: string
+ *                 example: "John Doe"
+ *               status:
+ *                 type: string
+ *                 enum: [show, hide]
+ *                 default: hide
  *     responses:
  *       201:
  *         description: Answer created successfully
@@ -35,7 +55,7 @@ const answerController = require('../../controller/user/answer');
  *       500:
  *         description: Internal Server Error
  */
-router.post('/', answerController.createAnswer);
+router.post('/', upload.none(), answerController.createAnswer);
 
 /**
  * @swagger

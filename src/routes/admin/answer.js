@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const answerController = require('../../controller/admin/answer');
+const multer = require('multer');
+const upload = multer();
 
 /**
  * @swagger
@@ -18,9 +20,27 @@ const answerController = require('../../controller/admin/answer');
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/AnswerInput'
+ *             type: object
+ *             required:
+ *               - topic_id
+ *               - answer_text
+ *               - answered_by
+ *             properties:
+ *               topic_id:
+ *                 type: integer
+ *                 example: 1
+ *               answer_text:
+ *                 type: string
+ *                 example: "This is a sample answer"
+ *               answered_by:
+ *                 type: string
+ *                 example: "John Doe"
+ *               status:
+ *                 type: string
+ *                 enum: [show, hide]
+ *                 default: hide
  *     responses:
  *       201:
  *         description: Answer created successfully
@@ -35,7 +55,7 @@ const answerController = require('../../controller/admin/answer');
  *       500:
  *         description: Internal Server Error
  */
-router.post('/', answerController.createAnswer);
+router.post('/', upload.none(), answerController.createAnswer);
 
 /**
  * @swagger
@@ -118,9 +138,19 @@ router.get('/:id', answerController.getAnswer);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/AnswerUpdate'
+ *             type: object
+ *             properties:
+ *               answer_text:
+ *                 type: string
+ *                 example: "Updated answer text"
+ *               answered_by:
+ *                 type: string
+ *                 example: "Jane Smith"
+ *               status:
+ *                 type: string
+ *                 enum: [show, hide]
  *     responses:
  *       200:
  *         description: Answer updated successfully
@@ -135,7 +165,7 @@ router.get('/:id', answerController.getAnswer);
  *       500:
  *         description: Internal Server Error
  */
-router.put('/:id', answerController.updateAnswer);
+router.put('/:id', upload.none(), answerController.updateAnswer);
 
 /**
  * @swagger
